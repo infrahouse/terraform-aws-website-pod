@@ -34,6 +34,10 @@ resource "aws_alb_target_group" "website" {
   protocol    = "HTTP"
   target_type = "instance"
   vpc_id      = data.aws_subnet.selected.vpc_id
+  stickiness {
+    type    = "lb_cookie"
+    enabled = var.stickiness_enabled
+  }
 
   health_check {
     path                = var.alb_healthcheck_path

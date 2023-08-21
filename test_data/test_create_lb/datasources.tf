@@ -65,8 +65,8 @@ data "aws_ami" "ubuntu" {
 }
 
 data "aws_iam_policy_document" "webserver_permissions" {
-    statement {
-        actions   = ["ec2:Describe*"]
-        resources = ["*"]
-    }
+  statement {
+    actions   = ["ec2:Describe*"]
+    resources = ["*"]
+  }
 }
