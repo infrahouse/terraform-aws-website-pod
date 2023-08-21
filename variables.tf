@@ -161,6 +161,13 @@ variable "max_instance_lifetime_days" {
 }
 
 variable "webserver_permissions" {
-    description = "A JSON with a permissions policy document. The policy will be attached to the webserver instance profile."
-    type = string
+  description = "A JSON with a permissions policy document. The policy will be attached to the webserver instance profile."
+  type        = string
+}
+
+
+variable "stickiness_enabled" {
+  description = "If true, enable stickiness on the target group ensuring a clients is forwarded to the same target."
+  type        = bool
+  default     = false
 }
