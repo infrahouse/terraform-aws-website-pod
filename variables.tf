@@ -38,6 +38,12 @@ variable "alb_healthcheck_response_code_matcher" {
   default     = "200-299"
 }
 
+variable "alb_listener_port" {
+  description = "TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS."
+  type        = number
+  default     = 80
+}
+
 variable "alb_name_prefix" {
   description = "Name prefix for the load balancer"
   type        = string
@@ -167,7 +173,7 @@ variable "tags" {
 }
 
 variable "target_group_port" {
-  description = "TCP port that a target listens to to serve client requests."
+  description = "TCP port that a target listens to to serve requests from the load balancer."
   type        = number
   default     = 80
 }
