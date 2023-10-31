@@ -6,7 +6,7 @@ resource "aws_alb" "website" {
 
 resource "aws_alb_listener" "redirect_to_ssl" {
   load_balancer_arn = aws_alb.website.arn
-  port              = var.target_group_port
+  port              = var.alb_listener_port
   default_action {
     type = "redirect"
     redirect {
