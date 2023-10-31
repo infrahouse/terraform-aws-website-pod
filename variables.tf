@@ -68,8 +68,8 @@ variable "autoscaling_target_cpu_load" {
 }
 
 variable "backend_subnets" {
-    description = "Subnet ids where EC2 instances should be present"
-    type        = list(string)
+  description = "Subnet ids where EC2 instances should be present"
+  type        = list(string)
 }
 
 # "A" records in a hosted zone, specified by zone_id
@@ -81,39 +81,39 @@ variable "backend_subnets" {
 # If we pass A records as ["something"] then the module
 # will create the "A" record something.infrahouse.com
 variable "dns_a_records" {
-    description = "List of A records in the zone_id that will resolve to the ALB dns name."
-    type        = list(string)
-    default     = [""]
+  description = "List of A records in the zone_id that will resolve to the ALB dns name."
+  type        = list(string)
+  default     = [""]
 }
 
 
 variable "enable_deletion_protection" {
-    description = "Prevent load balancer from destroying"
-    type        = bool
-    default     = false
+  description = "Prevent load balancer from destroying"
+  type        = bool
+  default     = false
 }
 variable "environment" {
-    description = "Name of environment"
-    type        = string
-    default     = "development"
+  description = "Name of environment"
+  type        = string
+  default     = "development"
 }
 
 variable "instance_profile" {
-    description = "IAM profile name to be created for the webserver instances."
-    type        = string
-    default     = "webserver"
+  description = "IAM profile name to be created for the webserver instances."
+  type        = string
+  default     = "webserver"
 }
 
 
 variable "instance_type" {
-    description = "EC2 instances type"
-    type        = string
-    default     = "t3.micro"
+  description = "EC2 instances type"
+  type        = string
+  default     = "t3.micro"
 }
 
 variable "internet_gateway_id" {
-    description = "AWS Internet Gateway must be present. Ensure by passing its id."
-    type        = string
+  description = "AWS Internet Gateway must be present. Ensure by passing its id."
+  type        = string
 }
 
 variable "health_check_grace_period" {
@@ -122,15 +122,15 @@ variable "health_check_grace_period" {
 }
 
 variable "health_check_type" {
-    # Good summary
-    # https://stackoverflow.com/questions/42466157/whats-the-difference-between-elb-health-check-and-ec2-health-check
-    description = "Type of healthcheck the ASG uses. Can be EC2 or ELB."
-    type        = string
-    default     = "ELB"
+  # Good summary
+  # https://stackoverflow.com/questions/42466157/whats-the-difference-between-elb-health-check-and-ec2-health-check
+  description = "Type of healthcheck the ASG uses. Can be EC2 or ELB."
+  type        = string
+  default     = "ELB"
 }
 
 variable "key_pair_name" {
-    description = "SSH keypair name to be deployed in EC2 instances"
+  description = "SSH keypair name to be deployed in EC2 instances"
 }
 
 variable "max_instance_lifetime_days" {
@@ -140,19 +140,19 @@ variable "max_instance_lifetime_days" {
 }
 
 variable "root_volume_size" {
-    description = "Root volume size in EC2 instance in Gigabytes"
-    type        = number
-    default     = 30
+  description = "Root volume size in EC2 instance in Gigabytes"
+  type        = number
+  default     = 30
 }
 variable "service_name" {
-    description = "Descriptive name of a service that will use this VPC"
-    type        = string
-    default     = "website"
+  description = "Descriptive name of a service that will use this VPC"
+  type        = string
+  default     = "website"
 }
 
 variable "subnets" {
-    description = "Subnet ids where load balancer should be present"
-    type        = list(string)
+  description = "Subnet ids where load balancer should be present"
+  type        = list(string)
 }
 
 variable "stickiness_enabled" {
@@ -162,8 +162,8 @@ variable "stickiness_enabled" {
 }
 
 variable "tags" {
-    description = "Tags to apply to each resource"
-    default     = {}
+  description = "Tags to apply to each resource"
+  default     = {}
 }
 
 variable "target_group_port" {
@@ -173,18 +173,18 @@ variable "target_group_port" {
 }
 
 variable "userdata" {
-    description = "userdata for cloud-init to provision EC2 instances"
+  description = "userdata for cloud-init to provision EC2 instances"
 }
 
 variable "wait_for_capacity_timeout" {
-    description = "How much time to wait until all instances are healthy"
-    type        = string
-    default     = "20m"
+  description = "How much time to wait until all instances are healthy"
+  type        = string
+  default     = "20m"
 }
 
 variable "webserver_permissions" {
-    description = "A JSON with a permissions policy document. The policy will be attached to the webserver instance profile."
-    type        = string
+  description = "A JSON with a permissions policy document. The policy will be attached to the webserver instance profile."
+  type        = string
 }
 
 variable "zone_id" {
