@@ -1,12 +1,12 @@
 resource "aws_alb" "website" {
-  name_prefix                = "web"
+  name_prefix                = var.alb_name_prefix
   enable_deletion_protection = var.enable_deletion_protection
   subnets                    = var.subnets
 }
 
 resource "aws_alb_listener" "redirect_to_ssl" {
   load_balancer_arn = aws_alb.website.arn
-  port              = 80
+  port              = var.target_group_port
   default_action {
     type = "redirect"
     redirect {
@@ -30,7 +30,7 @@ resource "aws_lb_listener" "ssl" {
 }
 
 resource "aws_alb_target_group" "website" {
-  port        = 80
+  port        = var.target_group_port
   protocol    = "HTTP"
   target_type = "instance"
   vpc_id      = data.aws_subnet.selected.vpc_id
@@ -101,7 +101,7 @@ resource "aws_autoscaling_group" "website" {
 }
 
 resource "aws_launch_template" "website" {
-  name_prefix   = "web-"
+  name_prefix   = var.alb_name_prefix
   image_id      = var.ami
   instance_type = var.instance_type
   user_data     = var.userdata

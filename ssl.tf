@@ -1,8 +1,8 @@
 resource "aws_acm_certificate" "website" {
-  domain_name       = var.dns_zone
+  domain_name       = trimprefix(join(".", [var.dns_a_records[0], data.aws_route53_zone.webserver_zone.name]), ".")
   validation_method = "DNS"
   subject_alternative_names = [
-    for record in var.dns_a_records_extra : "${record}.${var.dns_zone}"
+    for record in var.dns_a_records : trimprefix(join(".", [record, data.aws_route53_zone.webserver_zone.name]), ".")
   ]
 }
 
@@ -14,7 +14,7 @@ resource "aws_route53_record" "cert_validation" {
       type   = dvo.resource_record_type
     }
   }
-  zone_id = data.aws_route53_zone.website.id
+  zone_id = var.zone_id
   name    = each.value.name
   type    = each.value.type
   records = [
