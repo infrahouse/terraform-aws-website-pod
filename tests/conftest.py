@@ -58,3 +58,8 @@ def route53_client(boto3_session):
 @pytest.fixture()
 def elbv2_client(boto3_session):
     return boto3_session.client("elbv2", region_name=REGION)
+
+
+@pytest.fixture()
+def autoscaling_client(boto3_session):
+    return boto3_session.client("autoscaling", region_name=REGION)

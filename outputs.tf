@@ -12,3 +12,13 @@ output "target_group_arn" {
   description = "Target group ARN that listens to the service port."
   value       = aws_alb_target_group.website.arn
 }
+
+output "asg_arn" {
+  description = "ARN of the created autoscaling group"
+  value       = aws_autoscaling_group.website.arn
+}
+
+output "asg_name" {
+  description = "Name of the created autoscaling group"
+  value       = aws_autoscaling_group.website.name
+}

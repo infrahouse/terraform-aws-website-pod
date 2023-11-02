@@ -1,6 +1,8 @@
+import json
 from pprint import pformat
 from os import path as osp
 from textwrap import dedent
+from time import sleep
 
 import pytest
 import requests
@@ -18,9 +20,10 @@ from tests.conftest import (
 
 @pytest.mark.flaky(reruns=0, reruns_delay=30)
 @pytest.mark.timeout(1800)
-def test_lb(ec2_client, route53_client, elbv2_client):
+def test_lb(ec2_client, route53_client, elbv2_client, autoscaling_client):
     terraform_dir = "test_data/test_create_lb"
 
+    instance_name = "foo-app"
     with open(osp.join(terraform_dir, "terraform.tfvars"), "w") as fp:
         fp.write(
             dedent(
@@ -28,6 +31,9 @@ def test_lb(ec2_client, route53_client, elbv2_client):
                 region = "{REGION}"
                 dns_zone = "{TEST_ZONE}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
+                tags = {{
+                    Name: "{instance_name}"
+                }}
                 """
             )
         )
@@ -107,6 +113,71 @@ def test_lb(ec2_client, route53_client, elbv2_client):
             assert all(
                 (response.status_code == 200, response.text == "Success Message\r\n")
             ), ("Unsuccessful HTTP response: %s" % response.text)
+
+        # Check tags on ASG instances
+        asg_name = tf_output["asg_name"]["value"]
+        # Wait for any instance refreshes to finish
+        while True:
+            response = autoscaling_client.describe_instance_refreshes(
+                AutoScalingGroupName=asg_name
+            )
+            LOG.debug(
+                "describe_instance_refreshes(%s): %s",
+                asg_name,
+                pformat(response, indent=4),
+            )
+            current_refreshes = 0
+            for refresh in response["InstanceRefreshes"]:
+                if refresh["Status"] in ["Pending", "InProgress", "Cancelling", "RollbackInProgress"]:
+                    current_refreshes += 1
+
+            if current_refreshes > 0:
+                LOG.info("Waiting until %s finishes the instance refreshes", asg_name)
+                sleep(5)
+                continue
+
+            break
+
+        response = autoscaling_client.describe_auto_scaling_groups(
+            AutoScalingGroupNames=[
+                asg_name,
+            ],
+        )
+        LOG.debug(
+            "describe_auto_scaling_groups(%s): %s",
+            asg_name,
+            pformat(response, indent=4),
+        )
+
+        healthy_instance = None
+        for instance in response["AutoScalingGroups"][0]["Instances"]:
+            LOG.debug("Evaluating instance %s", pformat(instance, indent=4))
+            if instance["LifecycleState"] == "InService":
+                healthy_instance = instance
+                break
+        assert healthy_instance, f"Could not find a healthy instance in ASG {asg_name}"
+        response = ec2_client.describe_tags(
+            Filters=[
+                {
+                    "Name": "resource-id",
+                    "Values": [
+                        healthy_instance["InstanceId"],
+                    ],
+                },
+            ],
+        )
+        LOG.debug(
+            "describe_tags(%s): %s",
+            healthy_instance["InstanceId"],
+            pformat(response, indent=4),
+        )
+        tags = {}
+        for tag in response["Tags"]:
+            tags[tag["Key"]] = tag["Value"]
+
+        assert (
+            tags["Name"] == instance_name
+        ), f"Instance's name should be set to {instance_name}."
 
     response = ec2_client.describe_volumes(
         Filters=[{"Name": "status", "Values": ["available"]}],

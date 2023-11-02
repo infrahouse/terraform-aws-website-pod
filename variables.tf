@@ -55,6 +55,11 @@ variable "ami" {
   type        = string
 }
 
+variable "min_healthy_percentage" {
+  description = "Amount of capacity in the Auto Scaling group that must remain healthy during an instance refresh to allow the operation to continue, as a percentage of the desired capacity of the Auto Scaling group."
+  default     = 100
+}
+
 variable "asg_min_size" {
   description = "Minimum number of instances in ASG"
   type        = number
@@ -168,8 +173,10 @@ variable "stickiness_enabled" {
 }
 
 variable "tags" {
-  description = "Tags to apply to each resource"
-  default     = {}
+  description = "Tags to apply to instances in the autoscaling group."
+  default = {
+    Name : "webserver"
+  }
 }
 
 variable "target_group_port" {

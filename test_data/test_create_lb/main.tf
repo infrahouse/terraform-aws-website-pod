@@ -16,4 +16,5 @@ module "lb" {
   userdata              = data.template_cloudinit_config.webserver_init.rendered
   health_check_type     = "ELB"
   webserver_permissions = data.aws_iam_policy_document.webserver_permissions.json
+  tags                  = var.tags
 }

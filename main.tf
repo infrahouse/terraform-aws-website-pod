@@ -52,6 +52,16 @@ resource "aws_alb_target_group" "website" {
 
 }
 
+locals {
+  default_asg_tags = {
+    Name : "webserver"
+    environment : var.environment
+    service : var.service_name
+    managed-by : "terraform"
+    account : data.aws_caller_identity.current.account_id
+  }
+}
+
 resource "aws_autoscaling_group" "website" {
   name_prefix               = aws_launch_template.website.name_prefix
   min_size                  = var.asg_min_size
@@ -65,34 +75,28 @@ resource "aws_autoscaling_group" "website" {
   target_group_arns = [
     aws_alb_target_group.website.arn
   ]
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = var.min_healthy_percentage
+    }
+    triggers = ["tag"]
+  }
   launch_template {
     id      = aws_launch_template.website.id
     version = aws_launch_template.website.latest_version
   }
-  tag {
-    key                 = "Name"
-    value               = "webserver"
-    propagate_at_launch = true
-  }
-  tag {
-    key                 = "environment"
-    value               = var.environment
-    propagate_at_launch = true
-  }
-  tag {
-    key                 = "service"
-    value               = var.service_name
-    propagate_at_launch = true
-  }
-  tag {
-    key                 = "managed-by"
-    value               = "terraform"
-    propagate_at_launch = true
-  }
-  tag {
-    key                 = "account"
-    value               = data.aws_caller_identity.current.account_id
-    propagate_at_launch = true
+  dynamic "tag" {
+    for_each = merge(
+      local.default_asg_tags,
+      var.tags
+    )
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+
+    }
   }
 
   lifecycle {
