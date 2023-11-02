@@ -13,3 +13,7 @@ output "network_subnet_all_ids" {
 output "network_vpc_cidr_block" {
   value = module.network.vpc_cidr_block
 }
+
+output "asg_name" {
+  value = module.lb.asg_name
+}
