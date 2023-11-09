@@ -60,13 +60,14 @@ locals {
     managed-by : "terraform"
     account : data.aws_caller_identity.current.account_id
   }
+  min_elb_capacity = var.asg_min_elb_capacity != null ? var.asg_min_elb_capacity : var.asg_min_size
 }
 
 resource "aws_autoscaling_group" "website" {
   name_prefix               = aws_launch_template.website.name_prefix
   min_size                  = var.asg_min_size
   max_size                  = var.asg_max_size
-  min_elb_capacity          = var.asg_min_size
+  min_elb_capacity          = local.min_elb_capacity
   vpc_zone_identifier       = var.backend_subnets
   health_check_type         = var.health_check_type
   wait_for_capacity_timeout = var.wait_for_capacity_timeout

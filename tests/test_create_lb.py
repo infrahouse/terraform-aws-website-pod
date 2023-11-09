@@ -128,7 +128,12 @@ def test_lb(ec2_client, route53_client, elbv2_client, autoscaling_client):
             )
             current_refreshes = 0
             for refresh in response["InstanceRefreshes"]:
-                if refresh["Status"] in ["Pending", "InProgress", "Cancelling", "RollbackInProgress"]:
+                if refresh["Status"] in [
+                    "Pending",
+                    "InProgress",
+                    "Cancelling",
+                    "RollbackInProgress",
+                ]:
                     current_refreshes += 1
 
             if current_refreshes > 0:
