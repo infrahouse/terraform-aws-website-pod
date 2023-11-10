@@ -17,3 +17,6 @@ output "network_vpc_cidr_block" {
 output "asg_name" {
   value = module.lb.asg_name
 }
+output "alb_private_ips" {
+  value = module.lb.alb_public_ips
+}

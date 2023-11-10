@@ -1,4 +1,3 @@
-import json
 from pprint import pformat
 from os import path as osp
 from textwrap import dedent
@@ -55,16 +54,26 @@ def test_lb(ec2_client, route53_client, elbv2_client, autoscaling_client):
         zone_id = response["HostedZones"][0]["Id"]
 
         response = route53_client.list_resource_record_sets(HostedZoneId=zone_id)
-        a_records = [
-            a["Name"] for a in response["ResourceRecordSets"] if a["Type"] == "A"
+        LOG.debug("list_resource_record_sets() = %s", pformat(response, indent=4))
+
+        records = [
+            a["Name"]
+            for a in response["ResourceRecordSets"]
+            if a["Type"] in ["CNAME", "A"]
         ]
+        assert f"{TEST_ZONE}." in records, "Record %s is missing in %s: %s" % (
+            TEST_ZONE,
+            TEST_ZONE,
+            pformat(records, indent=4),
+        )
+
         for record in ["bogus-test-stuff", "www"]:
             assert (
-                "%s.%s." % (record, TEST_ZONE) in a_records
+                "%s.%s." % (record, TEST_ZONE) in records
             ), "Record %s is missing in %s: %s" % (
                 record,
                 TEST_ZONE,
-                pformat(a_records, indent=4),
+                pformat(records, indent=4),
             )
 
         response = ec2_client.describe_vpcs(

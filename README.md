@@ -4,15 +4,25 @@ The module creates resources to run an HTTP service in an autoscaling group.
 It creates a load balancer that terminates SSL on the TCP port 443.
 It also issues the SSL certificate in ACM.
 
+> **Note**: Starting from version 2.0 the module separates the main aws provider and a provider for
+> Route53 resources. If you don't need to separate them, just pass the same provider for `aws` and `aws.dns`
+> ```hcl
+> providers = {
+>   aws     = aws
+>   aws.dns = aws
+> }
+> ```
+
 ## Usage
 
 ```hcl
 module "website" {
   providers = {
-    aws = aws.aws-uw1
+    aws     = aws.aws-uw1
+    aws.dns = aws.aws-uw1
   }
   source                = "infrahouse/website-pod/aws"
-  version               = "~> 1.0"
+  version               = "~> 2.0"
   environment           = var.environment
   ami                   = data.aws_ami.ubuntu_22.image_id
   backend_subnets       = module.website-vpc.subnet_private_ids
