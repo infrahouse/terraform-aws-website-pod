@@ -14,9 +14,10 @@ resource "aws_route53_record" "cert_validation" {
       type   = dvo.resource_record_type
     }
   }
-  zone_id = var.zone_id
-  name    = each.value.name
-  type    = each.value.type
+  provider = aws.dns
+  zone_id  = var.zone_id
+  name     = each.value.name
+  type     = each.value.type
   records = [
     each.value.record
   ]
