@@ -3,7 +3,11 @@ resource "aws_key_pair" "test" {
 }
 
 module "lb" {
-  source                = "../../"
+  source = "../../"
+  providers = {
+    aws     = aws
+    aws.dns = aws
+  }
   service_name          = "website"
   subnets               = module.network.subnet_public_ids
   ami                   = data.aws_ami.ubuntu.id
