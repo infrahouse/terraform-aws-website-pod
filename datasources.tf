@@ -5,7 +5,8 @@ data "aws_subnet" "selected" {
 }
 
 data "aws_route53_zone" "webserver_zone" {
-  zone_id = var.zone_id
+  provider = aws.dns
+  zone_id  = var.zone_id
 }
 
 # Public IP Addresses on the ALB
