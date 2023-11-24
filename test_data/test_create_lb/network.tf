@@ -3,7 +3,7 @@ module "network" {
   version = "~> 2.0"
 
   environment           = "dev"
-  service_name          = "test_data/test_create_lb"
+  service_name          = "test_data/terraform-aws-website-pod"
   vpc_cidr_block        = "10.1.0.0/16"
   management_cidr_block = "10.1.0.0/16"
   subnets = [
