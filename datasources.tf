@@ -11,7 +11,7 @@ data "aws_route53_zone" "webserver_zone" {
 
 # Public IP Addresses on the ALB
 data "aws_network_interface" "alb" {
-  for_each = toset(var.subnets)
+  count = length(var.subnets)
 
   filter {
     name   = "description"
@@ -20,6 +20,10 @@ data "aws_network_interface" "alb" {
 
   filter {
     name   = "subnet-id"
-    values = [each.value]
+    values = [var.subnets[count.index]]
   }
+  depends_on = [
+    aws_alb.website,
+    aws_autoscaling_group.website
+  ]
 }

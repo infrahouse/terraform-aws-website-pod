@@ -1,40 +1,48 @@
 variable "alb_healthcheck_path" {
   description = "Path on the webserver that the elb will check to determine whether the instance is healthy or not"
+  type        = string
   default     = "/index.html"
 }
 
 variable "alb_healthcheck_port" {
   description = "Port of the webserver that the elb will check to determine whether the instance is healthy or not"
-  default     = "80"
+  type        = number
+  default     = 80
 }
 
 variable "alb_healthcheck_protocol" {
   description = "Protocol to use with the webserver that the elb will check to determine whether the instance is healthy or not"
+  type        = string
   default     = "HTTP"
 }
 
 variable "alb_healthcheck_healthy_threshold" {
   description = "Number of times the host have to pass the test to be considered healthy"
+  type        = number
   default     = 2
 }
 
 variable "alb_healthcheck_uhealthy_threshold" {
   description = "Number of times the host have to pass the test to be considered UNhealthy"
+  type        = number
   default     = 2
 }
 
 variable "alb_healthcheck_interval" {
   description = "Number of seconds between checks"
+  type        = number
   default     = 5
 }
 
 variable "alb_healthcheck_timeout" {
   description = "Number of seconds to timeout a check"
+  type        = number
   default     = 4
 }
 
 variable "alb_healthcheck_response_code_matcher" {
   description = "Range of http return codes that can match"
+  type        = string
   default     = "200-299"
 }
 
@@ -57,6 +65,7 @@ variable "ami" {
 
 variable "min_healthy_percentage" {
   description = "Amount of capacity in the Auto Scaling group that must remain healthy during an instance refresh to allow the operation to continue, as a percentage of the desired capacity of the Auto Scaling group."
+  type        = number
   default     = 100
 }
 
@@ -128,13 +137,14 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "internet_gateway_id" {
-  description = "AWS Internet Gateway must be present. Ensure by passing its id."
+variable "internet_gateway_id" { # tflint-ignore: terraform_unused_declarations
+  description = "Not used, but AWS Internet Gateway must be present. Ensure by passing its id."
   type        = string
 }
 
 variable "health_check_grace_period" {
   description = "ASG will wait up to this number of seconds for instance to become healthy"
+  type        = number
   default     = 300
 }
 
@@ -148,6 +158,7 @@ variable "health_check_type" {
 
 variable "key_pair_name" {
   description = "SSH keypair name to be deployed in EC2 instances"
+  type        = string
 }
 
 variable "max_instance_lifetime_days" {
@@ -180,6 +191,7 @@ variable "stickiness_enabled" {
 
 variable "tags" {
   description = "Tags to apply to instances in the autoscaling group."
+  type        = map(string)
   default = {
     Name : "webserver"
   }
@@ -193,6 +205,7 @@ variable "target_group_port" {
 
 variable "userdata" {
   description = "userdata for cloud-init to provision EC2 instances"
+  type        = string
 }
 
 variable "wait_for_capacity_timeout" {
