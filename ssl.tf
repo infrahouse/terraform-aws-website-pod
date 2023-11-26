@@ -4,6 +4,9 @@ resource "aws_acm_certificate" "website" {
   subject_alternative_names = [
     for record in var.dns_a_records : trimprefix(join(".", [record, data.aws_route53_zone.webserver_zone.name]), ".")
   ]
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_record" "cert_validation" {

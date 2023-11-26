@@ -12,7 +12,8 @@ data "template_cloudinit_config" "webserver_init" {
           {
             "package_update" : true,
             packages : [
-              "xinetd"
+              "xinetd",
+              "net-tools"
             ]
             write_files : [
               {
