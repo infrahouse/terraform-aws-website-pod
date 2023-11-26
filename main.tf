@@ -27,6 +27,9 @@ resource "aws_lb_listener" "ssl" {
     type             = "forward"
     target_group_arn = aws_alb_target_group.website.arn
   }
+  depends_on = [
+    aws_acm_certificate_validation.website
+  ]
 }
 
 resource "aws_alb_target_group" "website" {
