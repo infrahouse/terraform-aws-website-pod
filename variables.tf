@@ -167,6 +167,12 @@ variable "max_instance_lifetime_days" {
   default     = 30
 }
 
+variable "protect_from_scale_in" {
+  description = "Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in."
+  type        = bool
+  default     = false
+}
+
 variable "root_volume_size" {
   description = "Root volume size in EC2 instance in Gigabytes"
   type        = number
