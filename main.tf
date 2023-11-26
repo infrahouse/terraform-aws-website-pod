@@ -76,6 +76,7 @@ resource "aws_autoscaling_group" "website" {
   wait_for_capacity_timeout = var.wait_for_capacity_timeout
   max_instance_lifetime     = var.max_instance_lifetime_days * 24 * 3600
   health_check_grace_period = var.health_check_grace_period
+  protect_from_scale_in     = var.protect_from_scale_in
   target_group_arns = [
     aws_alb_target_group.website.arn
   ]
