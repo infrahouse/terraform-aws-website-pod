@@ -43,6 +43,7 @@ resource "aws_alb_target_group" "website" {
   }
 
   health_check {
+    enabled             = var.alb_healthcheck_enabled
     path                = var.alb_healthcheck_path
     port                = var.alb_healthcheck_port
     protocol            = var.alb_healthcheck_protocol

@@ -1,3 +1,8 @@
+variable "alb_healthcheck_enabled" {
+  description = "Whether health checks are enabled."
+  type        = bool
+  default     = true
+}
 variable "alb_healthcheck_path" {
   description = "Path on the webserver that the elb will check to determine whether the instance is healthy or not"
   type        = string
