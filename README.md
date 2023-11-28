@@ -22,7 +22,7 @@ module "website" {
     aws.dns = aws.aws-uw1
   }
   source                = "infrahouse/website-pod/aws"
-  version               = "~> 2.1"
+  version               = "~> 2.2"
   environment           = var.environment
   ami                   = data.aws_ami.ubuntu_22.image_id
   backend_subnets       = module.website-vpc.subnet_private_ids
@@ -81,6 +81,7 @@ module "website" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_alb_healthcheck_enabled"></a> [alb\_healthcheck\_enabled](#input\_alb\_healthcheck\_enabled) | Whether health checks are enabled. | `bool` | `true` | no |
 | <a name="input_alb_healthcheck_healthy_threshold"></a> [alb\_healthcheck\_healthy\_threshold](#input\_alb\_healthcheck\_healthy\_threshold) | Number of times the host have to pass the test to be considered healthy | `number` | `2` | no |
 | <a name="input_alb_healthcheck_interval"></a> [alb\_healthcheck\_interval](#input\_alb\_healthcheck\_interval) | Number of seconds between checks | `number` | `5` | no |
 | <a name="input_alb_healthcheck_path"></a> [alb\_healthcheck\_path](#input\_alb\_healthcheck\_path) | Path on the webserver that the elb will check to determine whether the instance is healthy or not | `string` | `"/index.html"` | no |
