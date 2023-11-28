@@ -11,7 +11,7 @@ variable "alb_healthcheck_path" {
 
 variable "alb_healthcheck_port" {
   description = "Port of the webserver that the elb will check to determine whether the instance is healthy or not"
-  type        = number
+  type        = any
   default     = 80
 }
 
