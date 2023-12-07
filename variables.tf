@@ -50,6 +50,11 @@ variable "alb_healthcheck_response_code_matcher" {
   type        = string
   default     = "200-299"
 }
+variable "alb_idle_timeout" {
+  description = "The time in seconds that the connection is allowed to be idle."
+  type        = number
+  default     = 60
+}
 
 variable "alb_listener_port" {
   description = "TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS."
