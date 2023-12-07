@@ -2,6 +2,7 @@ resource "aws_alb" "website" {
   name_prefix                = var.alb_name_prefix
   enable_deletion_protection = var.enable_deletion_protection
   subnets                    = var.subnets
+  idle_timeout               = var.alb_idle_timeout
 }
 
 resource "aws_alb_listener" "redirect_to_ssl" {
