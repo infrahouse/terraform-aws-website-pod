@@ -22,8 +22,3 @@ output "asg_name" {
   description = "Name of the created autoscaling group"
   value       = aws_autoscaling_group.website.name
 }
-
-output "alb_public_ips" {
-  description = "List of public IPv4 addresses assigned to the load balancer."
-  value       = local.a_list
-}

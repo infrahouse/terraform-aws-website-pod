@@ -22,7 +22,7 @@ module "website" {
     aws.dns = aws.aws-uw1
   }
   source                = "infrahouse/website-pod/aws"
-  version               = "~> 2.3"
+  version               = "~> 2.5"
   environment           = var.environment
   ami                   = data.aws_ami.ubuntu_22.image_id
   backend_subnets       = module.website-vpc.subnet_private_ids
@@ -69,11 +69,9 @@ module "website" {
 | [aws_autoscaling_policy.cpu_load](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_policy) | resource |
 | [aws_launch_template.website](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
 | [aws_lb_listener.ssl](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
-| [aws_route53_record.apex](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.cert_validation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.extra](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
-| [aws_network_interface.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/network_interface) | data source |
 | [aws_route53_zone.webserver_zone](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
 | [aws_subnet.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnet) | data source |
 
@@ -127,7 +125,6 @@ module "website" {
 
 | Name | Description |
 |------|-------------|
-| <a name="output_alb_public_ips"></a> [alb\_public\_ips](#output\_alb\_public\_ips) | List of public IPv4 addresses assigned to the load balancer. |
 | <a name="output_asg_arn"></a> [asg\_arn](#output\_asg\_arn) | ARN of the created autoscaling group |
 | <a name="output_asg_name"></a> [asg\_name](#output\_asg\_name) | Name of the created autoscaling group |
 | <a name="output_dns_name"></a> [dns\_name](#output\_dns\_name) | DNA namae of the load balancer. |
