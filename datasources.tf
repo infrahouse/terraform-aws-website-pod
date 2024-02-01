@@ -8,3 +8,7 @@ data "aws_route53_zone" "webserver_zone" {
   provider = aws.dns
   zone_id  = var.zone_id
 }
+
+data "aws_vpc" "service" {
+  id = data.aws_subnet.selected.vpc_id
+}
