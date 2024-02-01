@@ -97,6 +97,12 @@ variable "asg_max_size" {
   default     = 10
 }
 
+variable "asg_scale_in_protected_instances" {
+  description = "Behavior when encountering instances protected from scale in are found. Available behaviors are Refresh, Ignore, and Wait."
+  type        = string
+  default     = "Ignore"
+}
+
 variable "attach_tagret_group_to_asg" {
   description = "By default we want to register all ASG instances in the target group. However ECS registers targets itself. Disable it if using website-pod for ECS."
   type        = bool

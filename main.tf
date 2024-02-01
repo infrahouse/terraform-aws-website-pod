@@ -88,7 +88,8 @@ resource "aws_autoscaling_group" "website" {
   instance_refresh {
     strategy = "Rolling"
     preferences {
-      min_healthy_percentage = var.min_healthy_percentage
+      min_healthy_percentage       = var.min_healthy_percentage
+      scale_in_protected_instances = var.asg_scale_in_protected_instances
     }
     triggers = ["tag"]
   }
