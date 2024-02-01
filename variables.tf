@@ -140,6 +140,12 @@ variable "environment" {
   default     = "development"
 }
 
+variable "extra_security_groups_backend" {
+  description = "A list of security group ids to assign to backend instances"
+  type        = list(string)
+  default     = []
+}
+
 variable "instance_profile" {
   description = "IAM profile name to be created for the webserver instances."
   type        = string
@@ -198,6 +204,12 @@ variable "service_name" {
   description = "Descriptive name of a service that will use this VPC"
   type        = string
   default     = "website"
+}
+
+variable "ssh_cidr_block" {
+  description = "CIDR range that is allowed to SSH into the backend instances"
+  type        = string
+  default     = "0.0.0.0/0"
 }
 
 variable "subnets" {

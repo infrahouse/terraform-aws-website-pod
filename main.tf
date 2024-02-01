@@ -3,6 +3,9 @@ resource "aws_alb" "website" {
   enable_deletion_protection = var.enable_deletion_protection
   subnets                    = var.subnets
   idle_timeout               = var.alb_idle_timeout
+  security_groups = [
+    aws_security_group.alb.id
+  ]
 }
 
 resource "aws_alb_listener" "redirect_to_ssl" {
@@ -117,6 +120,10 @@ resource "aws_launch_template" "website" {
   instance_type = var.instance_type
   user_data     = var.userdata
   key_name      = var.key_pair_name
+  vpc_security_group_ids = concat(
+    [aws_security_group.backend.id],
+    var.extra_security_groups_backend
+  )
   iam_instance_profile {
     arn = module.webserver_profile.instance_profile_arn
   }
@@ -132,4 +139,5 @@ resource "aws_launch_template" "website" {
   lifecycle {
     create_before_destroy = true
   }
+
 }
