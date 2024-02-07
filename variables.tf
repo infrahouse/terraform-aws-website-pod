@@ -56,6 +56,12 @@ variable "alb_idle_timeout" {
   default     = 60
 }
 
+variable "alb_internal" {
+  description = "If true, the LB will be internal."
+  type        = bool
+  default     = false
+}
+
 variable "alb_listener_port" {
   description = "TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS."
   type        = number
