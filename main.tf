@@ -3,6 +3,7 @@ resource "aws_alb" "website" {
   enable_deletion_protection = var.enable_deletion_protection
   subnets                    = var.subnets
   idle_timeout               = var.alb_idle_timeout
+  internal                   = var.alb_internal
   security_groups = [
     aws_security_group.alb.id
   ]

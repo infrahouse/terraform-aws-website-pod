@@ -66,8 +66,8 @@ They will be added to the backend instance alongside with the created backend se
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.13.1 |
-| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | 5.13.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.11 |
+| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | ~> 5.11 |
 
 ## Modules
 
@@ -121,6 +121,7 @@ They will be added to the backend instance alongside with the created backend se
 | <a name="input_alb_healthcheck_timeout"></a> [alb\_healthcheck\_timeout](#input\_alb\_healthcheck\_timeout) | Number of seconds to timeout a check | `number` | `4` | no |
 | <a name="input_alb_healthcheck_uhealthy_threshold"></a> [alb\_healthcheck\_uhealthy\_threshold](#input\_alb\_healthcheck\_uhealthy\_threshold) | Number of times the host have to pass the test to be considered UNhealthy | `number` | `2` | no |
 | <a name="input_alb_idle_timeout"></a> [alb\_idle\_timeout](#input\_alb\_idle\_timeout) | The time in seconds that the connection is allowed to be idle. | `number` | `60` | no |
+| <a name="input_alb_internal"></a> [alb\_internal](#input\_alb\_internal) | If true, the LB will be internal. | `bool` | `false` | no |
 | <a name="input_alb_listener_port"></a> [alb\_listener\_port](#input\_alb\_listener\_port) | TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS. | `number` | `80` | no |
 | <a name="input_alb_name_prefix"></a> [alb\_name\_prefix](#input\_alb\_name\_prefix) | Name prefix for the load balancer | `string` | `"web"` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | Image for EC2 instances | `string` | n/a | yes |
