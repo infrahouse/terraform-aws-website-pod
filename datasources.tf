@@ -12,3 +12,12 @@ data "aws_route53_zone" "webserver_zone" {
 data "aws_vpc" "service" {
   id = data.aws_subnet.selected.vpc_id
 }
+
+data "aws_ami" "selected" {
+  filter {
+    name = "image-id"
+    values = [
+      var.ami
+    ]
+  }
+}
