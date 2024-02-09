@@ -131,7 +131,7 @@ resource "aws_launch_template" "website" {
   }
 
   block_device_mappings {
-    device_name = "/dev/xvda"
+    device_name = data.aws_ami.selected.root_device_name
     ebs {
       volume_size           = var.root_volume_size
       delete_on_termination = true
