@@ -1,6 +1,6 @@
 module "network" {
   source  = "infrahouse/service-network/aws"
-  version = "~> 2.0"
+  version = "~> 2.3"
 
   environment           = "dev"
   service_name          = "test_data/terraform-aws-website-pod"

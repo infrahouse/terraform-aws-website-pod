@@ -73,7 +73,8 @@ locals {
 }
 
 resource "aws_autoscaling_group" "website" {
-  name_prefix               = aws_launch_template.website.name_prefix
+  name                      = var.asg_name
+  name_prefix               = var.asg_name == null ? aws_launch_template.website.name_prefix : null
   min_size                  = var.asg_min_size
   max_size                  = var.asg_max_size
   min_elb_capacity          = local.min_elb_capacity
@@ -117,7 +118,8 @@ resource "aws_autoscaling_group" "website" {
 }
 
 resource "aws_launch_template" "website" {
-  name_prefix   = var.alb_name_prefix
+  name          = var.asg_name
+  name_prefix   = var.asg_name == null ? var.alb_name_prefix : null
   image_id      = var.ami
   instance_type = var.instance_type
   user_data     = var.userdata

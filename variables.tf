@@ -103,6 +103,12 @@ variable "asg_max_size" {
   default     = 10
 }
 
+variable "asg_name" {
+  description = "Autoscaling group name, if provided."
+  type        = string
+  default     = null
+}
+
 variable "asg_scale_in_protected_instances" {
   description = "Behavior when encountering instances protected from scale in are found. Available behaviors are Refresh, Ignore, and Wait."
   type        = string

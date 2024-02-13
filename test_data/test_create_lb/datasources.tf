@@ -1,4 +1,4 @@
-data "template_cloudinit_config" "webserver_init" {
+data "cloudinit_config" "webserver_init" {
   gzip          = false
   base64_encode = true
 

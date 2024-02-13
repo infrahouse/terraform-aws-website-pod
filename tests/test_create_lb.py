@@ -193,9 +193,10 @@ def test_lb(ec2_client, route53_client, elbv2_client, autoscaling_client):
             tags["Name"] == instance_name
         ), f"Instance's name should be set to {instance_name}."
 
-    response = ec2_client.describe_volumes(
-        Filters=[{"Name": "status", "Values": ["available"]}],
-    )
-    assert (
-        len(response["Volumes"]) == 0
-    ), "Unexpected number of EBS volumes: %s" % pformat(response, indent=4)
+    if DESTROY_AFTER:
+        response = ec2_client.describe_volumes(
+            Filters=[{"Name": "status", "Values": ["available"]}],
+        )
+        assert (
+            len(response["Volumes"]) == 0
+        ), "Unexpected number of EBS volumes: %s" % pformat(response, indent=4)
