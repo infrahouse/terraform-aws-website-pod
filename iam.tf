@@ -1,5 +1,6 @@
 module "webserver_profile" {
-  source       = "git::https://github.com/infrahouse/terraform-aws-instance-profile.git?ref=1.3.0"
+  source       = "registry.infrahouse.com/infrahouse/instance-profile/aws"
+  version      = "~> 1.3"
   profile_name = var.instance_profile
   permissions  = var.webserver_permissions
 }
