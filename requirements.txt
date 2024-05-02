@@ -1,4 +1,4 @@
-black ~= 23.0
+black ~= 24.4
 boto3 ~= 1.26
 infrahouse-toolkit ~= 2.0
 myst-parser ~= 2.0
