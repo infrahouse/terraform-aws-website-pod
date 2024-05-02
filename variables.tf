@@ -1,3 +1,9 @@
+variable "alb_access_log_enabled" {
+  description = "Whether to maintain the access log."
+  type        = bool
+  default     = false
+}
+
 variable "alb_healthcheck_enabled" {
   description = "Whether health checks are enabled."
   type        = bool

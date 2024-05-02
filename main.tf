@@ -7,6 +7,30 @@ resource "aws_alb" "website" {
   security_groups = [
     aws_security_group.alb.id
   ]
+  dynamic "access_logs" {
+    for_each = var.alb_access_log_enabled ? [{}] : []
+    content {
+      bucket  = aws_s3_bucket.access_log[0].bucket
+      enabled = var.alb_access_log_enabled
+    }
+  }
+  tags = merge(
+      {
+          environment : var.environment
+          service : var.service_name
+          managed-by : "terraform"
+          account : data.aws_caller_identity.current.account_id
+
+      },
+      local.access_log_tags
+  )
+}
+
+locals {
+  access_log_tags = var.alb_access_log_enabled ? {
+    access_log_bucket : aws_s3_bucket.access_log[0].bucket
+    access_log_bucket_policy : aws_s3_bucket_policy.access_logs[0].id
+  } : {}
 }
 
 resource "aws_alb_listener" "redirect_to_ssl" {
