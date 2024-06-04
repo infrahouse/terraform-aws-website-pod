@@ -171,6 +171,7 @@ They will be added to the backend instance alongside with the created backend se
 |------|-------------|
 | <a name="output_asg_arn"></a> [asg\_arn](#output\_asg\_arn) | ARN of the created autoscaling group |
 | <a name="output_asg_name"></a> [asg\_name](#output\_asg\_name) | Name of the created autoscaling group |
-| <a name="output_dns_name"></a> [dns\_name](#output\_dns\_name) | DNA namae of the load balancer. |
+| <a name="output_dns_name"></a> [dns\_name](#output\_dns\_name) | DNS name of the load balancer. |
+| <a name="output_instance_role_arn"></a> [instance\_role\_arn](#output\_instance\_role\_arn) | ARN of an IAM role assigned to an instance via the instance profile. |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | Target group ARN that listens to the service port. |
 | <a name="output_zone_id"></a> [zone\_id](#output\_zone\_id) | Zone id where A records are created for the service. |
