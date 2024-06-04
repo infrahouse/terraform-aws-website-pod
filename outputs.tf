@@ -1,6 +1,11 @@
 output "dns_name" {
-  description = "DNA namae of the load balancer."
+  description = "DNS name of the load balancer."
   value       = aws_alb.website.dns_name
+}
+
+output "instance_role_arn" {
+    description = "ARN of an IAM role assigned to an instance via the instance profile."
+    value = module.webserver_profile.instance_role_arn
 }
 
 output "zone_id" {
