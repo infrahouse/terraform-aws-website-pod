@@ -21,5 +21,5 @@ override.tf.json
 __pycache__
 docs/_build/
 .terraform.lock.hcl
-test_data/test_create_lb/terraform.tfvars
+terraform.tfvars
 /.pytest_cache/

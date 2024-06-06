@@ -170,10 +170,16 @@ variable "extra_security_groups_backend" {
   default     = []
 }
 
-variable "instance_profile" {
-  description = "IAM profile name to be created for the webserver instances."
+variable "instance_profile_name" {
+  description = "IAM profile name to be used by the webserver instances. If null, the instance profile will be created."
   type        = string
-  default     = "webserver"
+  default     = null
+}
+
+variable "instance_profile_permissions" {
+  description = "A JSON with a permissions policy document. The policy will be attached to the instance profile."
+  type        = string
+  default     = null
 }
 
 
@@ -191,7 +197,7 @@ variable "internet_gateway_id" { # tflint-ignore: terraform_unused_declarations
 variable "health_check_grace_period" {
   description = "ASG will wait up to this number of seconds for instance to become healthy"
   type        = number
-  default     = 300
+  default     = 600
 }
 
 variable "health_check_type" {
@@ -270,11 +276,6 @@ variable "wait_for_capacity_timeout" {
   description = "How much time to wait until all instances are healthy"
   type        = string
   default     = "20m"
-}
-
-variable "webserver_permissions" {
-  description = "A JSON with a permissions policy document. The policy will be attached to the webserver instance profile."
-  type        = string
 }
 
 variable "zone_id" {

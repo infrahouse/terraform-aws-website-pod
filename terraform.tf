@@ -8,5 +8,9 @@ terraform {
         aws.dns # AWS provider for DNS
       ]
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }
