@@ -1,4 +1,4 @@
-module "network" {
+module "service-network" {
   source  = "infrahouse/service-network/aws"
   version = "~> 2.3"
 
@@ -51,4 +51,3 @@ module "network" {
     }
   ]
 }
-

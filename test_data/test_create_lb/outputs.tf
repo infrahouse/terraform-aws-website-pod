@@ -1,17 +1,13 @@
 output "network_subnet_public_ids" {
-  value = module.network.subnet_public_ids
+  value = var.lb_subnet_ids
 }
 
 output "network_subnet_private_ids" {
-  value = module.network.subnet_private_ids
+  value = var.backend_subnet_ids
 }
 
 output "network_subnet_all_ids" {
-  value = module.network.subnet_all_ids
-}
-
-output "network_vpc_cidr_block" {
-  value = module.network.vpc_cidr_block
+  value = concat(var.backend_subnet_ids, var.lb_subnet_ids)
 }
 
 output "asg_name" {

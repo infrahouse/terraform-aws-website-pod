@@ -1,25 +1,29 @@
-from pprint import pformat
+import json
 from os import path as osp
 from textwrap import dedent
-from time import sleep
 
 import pytest
-import requests
 from infrahouse_toolkit.terraform import terraform_apply
 
 from tests.conftest import (
-    LOG,
     TEST_ZONE,
     REGION,
     UBUNTU_CODENAME,
     TRACE_TERRAFORM,
     DESTROY_AFTER,
+    TEST_TIMEOUT,
+    TEST_ROLE_ARN,
 )
 
 
-@pytest.mark.flaky(reruns=0, reruns_delay=30)
-@pytest.mark.timeout(1800)
-def test_update_dns(ec2_client, route53_client, elbv2_client, autoscaling_client):
+@pytest.mark.timeout(TEST_TIMEOUT)
+def test_update_dns(
+    service_network, ec2_client, route53_client, elbv2_client, autoscaling_client
+):
+    subnet_public_ids = service_network["subnet_public_ids"]["value"]
+    subnet_private_ids = service_network["subnet_private_ids"]["value"]
+    internet_gateway_id = service_network["internet_gateway_id"]["value"]
+
     terraform_dir = "test_data/test_create_lb"
 
     instance_name = "foo-app"
@@ -27,12 +31,16 @@ def test_update_dns(ec2_client, route53_client, elbv2_client, autoscaling_client
         fp.write(
             dedent(
                 f"""
-                region = "{REGION}"
-                dns_zone = "{TEST_ZONE}"
+                region          = "{REGION}"
+                role_arn        = "{TEST_ROLE_ARN}"
+                dns_zone        = "{TEST_ZONE}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
                 tags = {{
                     Name: "{instance_name}"
                 }}
+                lb_subnet_ids = {json.dumps(subnet_public_ids)}
+                backend_subnet_ids = {json.dumps(subnet_private_ids)}
+                internet_gateway_id = "{internet_gateway_id}"
                 """
             )
         )
@@ -52,13 +60,18 @@ def test_update_dns(ec2_client, route53_client, elbv2_client, autoscaling_client
             fp.write(
                 dedent(
                     f"""
-                        region = "{REGION}"
-                        dns_zone = "{TEST_ZONE}"
+                        region          = "{REGION}"
+                        role_arn        = "{TEST_ROLE_ARN}"
+                        dns_zone        = "{TEST_ZONE}"
                         ubuntu_codename = "{UBUNTU_CODENAME}"
                         tags = {{
                             Name: "{instance_name}"
                         }}
                         dns_a_records = ["", "www"]
+
+                        lb_subnet_ids = {json.dumps(subnet_public_ids)}
+                        backend_subnet_ids = {json.dumps(subnet_private_ids)}
+                        internet_gateway_id = "{internet_gateway_id}"
                         """
                 )
             )

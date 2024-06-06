@@ -15,14 +15,14 @@ resource "aws_alb" "website" {
     }
   }
   tags = merge(
-      {
-          environment : var.environment
-          service : var.service_name
-          managed-by : "terraform"
-          account : data.aws_caller_identity.current.account_id
+    {
+      environment : var.environment
+      service : var.service_name
+      managed-by : "terraform"
+      account : data.aws_caller_identity.current.account_id
 
-      },
-      local.access_log_tags
+    },
+    local.access_log_tags
   )
 }
 
@@ -153,7 +153,7 @@ resource "aws_launch_template" "website" {
     var.extra_security_groups_backend
   )
   iam_instance_profile {
-    arn = module.webserver_profile.instance_profile_arn
+    arn = var.instance_profile_name != null ? data.aws_iam_instance_profile.passed[0].arn : module.instance_profile[0].instance_profile_arn
   }
 
   block_device_mappings {

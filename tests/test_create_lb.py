@@ -1,3 +1,4 @@
+import json
 from pprint import pformat
 from os import path as osp
 from textwrap import dedent
@@ -14,12 +15,20 @@ from tests.conftest import (
     UBUNTU_CODENAME,
     TRACE_TERRAFORM,
     DESTROY_AFTER,
+    TEST_ROLE_ARN,
+    TEST_TIMEOUT,
+    wait_for_instance_refresh,
 )
 
 
-@pytest.mark.flaky(reruns=0, reruns_delay=30)
-@pytest.mark.timeout(1800)
-def test_lb(ec2_client, route53_client, elbv2_client, autoscaling_client):
+@pytest.mark.timeout(TEST_TIMEOUT)
+def test_lb(
+    service_network, ec2_client, route53_client, elbv2_client, autoscaling_client
+):
+    subnet_public_ids = service_network["subnet_public_ids"]["value"]
+    subnet_private_ids = service_network["subnet_private_ids"]["value"]
+    internet_gateway_id = service_network["internet_gateway_id"]["value"]
+
     terraform_dir = "test_data/test_create_lb"
 
     instance_name = "foo-app"
@@ -27,12 +36,17 @@ def test_lb(ec2_client, route53_client, elbv2_client, autoscaling_client):
         fp.write(
             dedent(
                 f"""
-                region = "{REGION}"
-                dns_zone = "{TEST_ZONE}"
+                region          = "{REGION}"
+                dns_zone        = "{TEST_ZONE}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
+                role_arn        = "{TEST_ROLE_ARN}"
                 tags = {{
                     Name: "{instance_name}"
                 }}
+
+                lb_subnet_ids = {json.dumps(subnet_public_ids)}
+                backend_subnet_ids = {json.dumps(subnet_private_ids)}
+                internet_gateway_id = "{internet_gateway_id}"
                 """
             )
         )
@@ -125,32 +139,7 @@ def test_lb(ec2_client, route53_client, elbv2_client, autoscaling_client):
 
         # Check tags on ASG instances
         asg_name = tf_output["asg_name"]["value"]
-        # Wait for any instance refreshes to finish
-        while True:
-            response = autoscaling_client.describe_instance_refreshes(
-                AutoScalingGroupName=asg_name
-            )
-            LOG.debug(
-                "describe_instance_refreshes(%s): %s",
-                asg_name,
-                pformat(response, indent=4),
-            )
-            current_refreshes = 0
-            for refresh in response["InstanceRefreshes"]:
-                if refresh["Status"] in [
-                    "Pending",
-                    "InProgress",
-                    "Cancelling",
-                    "RollbackInProgress",
-                ]:
-                    current_refreshes += 1
-
-            if current_refreshes > 0:
-                LOG.info("Waiting until %s finishes the instance refreshes", asg_name)
-                sleep(5)
-                continue
-
-            break
+        wait_for_instance_refresh(asg_name, autoscaling_client)
 
         response = autoscaling_client.describe_auto_scaling_groups(
             AutoScalingGroupNames=[
