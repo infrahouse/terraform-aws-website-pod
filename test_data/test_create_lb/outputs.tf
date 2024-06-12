@@ -13,3 +13,7 @@ output "network_subnet_all_ids" {
 output "asg_name" {
   value = module.lb.asg_name
 }
+
+output "instance_profile_name" {
+  value = module.lb.instance_profile_name
+}

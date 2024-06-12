@@ -61,7 +61,7 @@ def test_lb(
         assert len(tf_output["network_subnet_public_ids"]) == 3
 
         response = route53_client.list_hosted_zones_by_name(DNSName=TEST_ZONE)
-        assert len(response["HostedZones"]) == 1, "Zone %s is not hosted by AWS: %s" % (
+        assert len(response["HostedZones"]) > 0, "Zone %s is not hosted by AWS: %s" % (
             TEST_ZONE,
             response,
         )

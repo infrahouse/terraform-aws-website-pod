@@ -23,11 +23,11 @@ from tests.conftest import (
 @pytest.mark.timeout(TEST_TIMEOUT)
 def test_lb(
     service_network,
-    instance_profile,
     ec2_client,
     route53_client,
     elbv2_client,
     autoscaling_client,
+    iam_client,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
@@ -41,15 +41,15 @@ def test_lb(
                 region                = "{REGION}"
                 role_arn              = "{TEST_ROLE_ARN}"
                 dns_zone              = "{TEST_ZONE}"
-                instance_profile_name = "{instance_profile['instance_profile_name']['value']}"
                 ubuntu_codename       = "{UBUNTU_CODENAME}"
                 tags = {{
                     Name: "foo-app"
                 }}
 
-                lb_subnet_ids = {json.dumps(subnet_public_ids)}
-                backend_subnet_ids = {json.dumps(subnet_private_ids)}
+                lb_subnet_ids       = {json.dumps(subnet_public_ids)}
+                backend_subnet_ids  = {json.dumps(subnet_private_ids)}
                 internet_gateway_id = "{internet_gateway_id}"
+                instance_role_name  = "foo-role"
                 """
             )
         )
@@ -63,31 +63,13 @@ def test_lb(
         asg_name = tf_output["asg_name"]["value"]
         wait_for_instance_refresh(asg_name, autoscaling_client)
 
-        response = autoscaling_client.describe_auto_scaling_groups(
-            AutoScalingGroupNames=[
-                asg_name,
-            ],
+        instance_profile_name = tf_output["instance_profile_name"]["value"]
+        response = iam_client.get_instance_profile(
+            InstanceProfileName=instance_profile_name
         )
         LOG.debug(
-            "describe_auto_scaling_groups(%s): %s",
-            asg_name,
+            "get_instance_profile(%s): %s",
+            instance_profile_name,
             pformat(response, indent=4),
         )
-
-        for instance in response["AutoScalingGroups"][0]["Instances"]:
-            LOG.debug("Evaluating instance %s", pformat(instance, indent=4))
-            di_response = ec2_client.describe_instances(
-                InstanceIds=[instance["InstanceId"]]
-            )
-            LOG.debug(
-                "describe_instances(%s) = %s",
-                instance["InstanceId"],
-                pformat(di_response, indent=4),
-            )
-
-            assert (
-                di_response["Reservations"][0]["Instances"][0]["IamInstanceProfile"][
-                    "Arn"
-                ]
-                == instance_profile["instance_profile_arn"]["value"]
-            )
+        assert response["InstanceProfile"]["Roles"][0]["RoleName"] == "foo-role"
