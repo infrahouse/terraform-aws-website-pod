@@ -75,6 +75,11 @@ def autoscaling_client(boto3_session):
 
 
 @pytest.fixture()
+def iam_client(boto3_session):
+    return boto3_session.client("iam", region_name=REGION)
+
+
+@pytest.fixture(scope="session")
 def instance_profile(boto3_session):
     terraform_module_dir = osp.join(TERRAFORM_ROOT_DIR, "instance_profile")
 
@@ -97,7 +102,7 @@ def instance_profile(boto3_session):
         yield tf_output
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def service_network(boto3_session):
     terraform_module_dir = osp.join(TERRAFORM_ROOT_DIR, "service-network")
     # Create service network
@@ -106,7 +111,7 @@ def service_network(boto3_session):
             dedent(
                 f"""
                 role_arn = "{TEST_ROLE_ARN}"
-                region = "{REGION}"
+                region   = "{REGION}"
                 """
             )
         )

@@ -21,6 +21,6 @@ module "lb" {
   userdata                     = data.cloudinit_config.webserver_init.rendered
   health_check_type            = "ELB"
   tags                         = var.tags
-  instance_profile_name        = var.instance_profile_name
   instance_profile_permissions = data.aws_iam_policy_document.webserver_permissions.json
+  instance_role_name           = var.instance_role_name
 }

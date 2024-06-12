@@ -23,11 +23,6 @@ data "aws_ami" "selected" {
   }
 }
 
-data "aws_iam_instance_profile" "passed" {
-  count = var.instance_profile_name == null ? 0 : 1
-  name  = var.instance_profile_name
-}
-
 data "aws_iam_policy_document" "default_permissions" {
   statement {
     actions = [

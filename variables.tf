@@ -152,12 +152,12 @@ variable "dns_a_records" {
   default     = [""]
 }
 
-
 variable "enable_deletion_protection" {
   description = "Prevent load balancer from destroying"
   type        = bool
   default     = false
 }
+
 variable "environment" {
   description = "Name of environment"
   type        = string
@@ -170,8 +170,8 @@ variable "extra_security_groups_backend" {
   default     = []
 }
 
-variable "instance_profile_name" {
-  description = "IAM profile name to be used by the webserver instances. If null, the instance profile will be created."
+variable "instance_role_name" {
+  description = "If specified, the instance profile role will have this name. Otherwise, the role name will be generated."
   type        = string
   default     = null
 }
