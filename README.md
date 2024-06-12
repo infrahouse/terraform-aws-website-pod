@@ -32,7 +32,6 @@ module "website" {
   key_pair_name         = data.aws_key_pair.aleks.key_name
   subnets               = module.website-vpc.subnet_public_ids
   userdata              = module.webserver_userdata.userdata
-  webserver_permissions = data.aws_iam_policy_document.webserver_permissions.json
   stickiness_enabled    = true
 }
 
