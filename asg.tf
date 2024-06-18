@@ -25,6 +25,10 @@ resource "aws_autoscaling_group" "website" {
     id      = aws_launch_template.website.id
     version = aws_launch_template.website.latest_version
   }
+  instance_maintenance_policy {
+    min_healthy_percentage = var.asg_min_elb_capacity
+    max_healthy_percentage = var.asg_max_healthy_percentage
+  }
   dynamic "tag" {
     for_each = merge(
       local.default_asg_tags,
