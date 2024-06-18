@@ -108,6 +108,18 @@ variable "asg_max_size" {
   type        = number
   default     = 10
 }
+variable "asg_min_healthy_percentage" {
+  description = "Specifies the lower limit on the number of instances that must be in the InService state with a healthy status during an instance replacement activity."
+  type        = number
+  default     = 100
+}
+
+variable "asg_max_healthy_percentage" {
+  description = "Specifies the upper limit on the number of instances that are in the InService or Pending state with a healthy status during an instance replacement activity."
+  type        = number
+  default     = 200
+
+}
 
 variable "asg_name" {
   description = "Autoscaling group name, if provided."
