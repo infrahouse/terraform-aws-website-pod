@@ -92,6 +92,7 @@ locals {
     service : var.service_name
     managed-by : "terraform"
     account : data.aws_caller_identity.current.account_id
+    created_by_module : "infrahouse/website-pod/aws"
   }
   min_elb_capacity = var.asg_min_elb_capacity != null ? var.asg_min_elb_capacity : var.asg_min_size
 }
