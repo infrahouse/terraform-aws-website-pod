@@ -32,3 +32,21 @@ output "zone_id" {
   description = "Zone id where A records are created for the service."
   value       = aws_alb.website.zone_id
 }
+
+output "backend_security_group" {
+  description = "Ma with security group id and rules"
+  value = {
+    backend : {
+      id : aws_security_group.backend.id
+      rules : {
+        backend_ssh_local : aws_vpc_security_group_ingress_rule.backend_ssh_local.id
+        backend_ssh_input : aws_vpc_security_group_ingress_rule.backend_ssh_input.id
+        backend_user_traffic : aws_vpc_security_group_ingress_rule.backend_user_traffic.id
+        backend_healthcheck : aws_vpc_security_group_ingress_rule.backend_healthcheck.id
+        backend_icmp : aws_vpc_security_group_ingress_rule.backend_icmp.id
+        backend_outgoing : aws_vpc_security_group_egress_rule.backend_outgoing.id
+      }
+    }
+
+  }
+}
