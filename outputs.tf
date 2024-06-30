@@ -17,6 +17,12 @@ output "instance_profile_name" {
   description = "EC2 instance profile name."
   value       = module.instance_profile.instance_profile_name
 }
+
+output "load_balancer_arn" {
+  description = "Load Balancer ARN"
+  value       = aws_alb.website.arn
+}
+
 output "target_group_arn" {
   description = "Target group ARN that listens to the service port."
   value       = aws_alb_target_group.website.arn
