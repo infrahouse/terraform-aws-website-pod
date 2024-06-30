@@ -52,6 +52,13 @@ output "backend_security_group" {
         }
       )
     }
-
   }
+}
+
+output "instance_role_policy_name" {
+    value = module.instance_profile.instance_role_policy_name
+}
+
+output "instance_role_policy_arn" {
+    value = module.instance_profile.instance_role_policy_arn
 }
