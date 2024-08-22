@@ -21,6 +21,7 @@ resource "aws_vpc_security_group_ingress_rule" "backend_ssh_local" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_ssh_input" {
+  count             = var.ssh_cidr_block != data.aws_vpc.service.cidr_block ? 1 : 0
   description       = "SSH access from the service specified CIDR range"
   security_group_id = aws_security_group.backend.id
   from_port         = 22
