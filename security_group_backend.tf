@@ -21,8 +21,8 @@ resource "aws_vpc_security_group_ingress_rule" "backend_ssh_local" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_ssh_input" {
-  count             = var.ssh_cidr_block != data.aws_vpc.service.cidr_block ? 1 : 0
-  description       = "SSH access from the service specified CIDR range"
+  count             = var.ssh_cidr_block != null ? 1 : 0
+  description       = "SSH access from the user-specified CIDR range."
   security_group_id = aws_security_group.backend.id
   from_port         = 22
   to_port           = 22
@@ -34,12 +34,12 @@ resource "aws_vpc_security_group_ingress_rule" "backend_ssh_input" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_user_traffic" {
-  description       = "User traffic from the Load Balancer"
-  security_group_id = aws_security_group.backend.id
-  from_port         = var.target_group_port
-  to_port           = var.target_group_port
-  ip_protocol       = "tcp"
-  cidr_ipv4         = data.aws_vpc.service.cidr_block
+  description                  = "User traffic from the Load Balancer"
+  security_group_id            = aws_security_group.backend.id
+  from_port                    = var.target_group_port
+  to_port                      = var.target_group_port
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = aws_security_group.alb.id
   tags = {
     Name = "user traffic"
   }
