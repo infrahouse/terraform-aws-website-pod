@@ -34,14 +34,12 @@ resource "aws_vpc_security_group_ingress_rule" "backend_ssh_input" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_user_traffic" {
-  description                  = "User traffic from the Load Balancer"
+  description                  = "Any traffic from the Load Balancer"
   security_group_id            = aws_security_group.backend.id
-  from_port                    = var.target_group_port
-  to_port                      = var.target_group_port
-  ip_protocol                  = "tcp"
+  ip_protocol                  = "-1"
   referenced_security_group_id = aws_security_group.alb.id
   tags = {
-    Name = "user traffic"
+    Name = "Load balancer traffic"
   }
 }
 
