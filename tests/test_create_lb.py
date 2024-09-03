@@ -21,12 +21,22 @@ from tests.conftest import (
 
 
 @pytest.mark.timeout(TEST_TIMEOUT)
+@pytest.mark.parametrize(
+    "lb_subnets,expected_scheme",
+    [("subnet_public_ids", "internet-facing"), ("subnet_private_ids", "internal")],
+)
 def test_lb(
-    service_network, ec2_client, route53_client, elbv2_client, autoscaling_client
+    service_network,
+    ec2_client,
+    route53_client,
+    elbv2_client,
+    autoscaling_client,
+    lb_subnets,
+    expected_scheme,
 ):
-    subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
+    lb_subnet_ids = service_network[lb_subnets]["value"]
 
     terraform_dir = "test_data/test_create_lb"
 
@@ -43,7 +53,7 @@ def test_lb(
                     Name: "{instance_name}"
                 }}
 
-                lb_subnet_ids = {json.dumps(subnet_public_ids)}
+                lb_subnet_ids = {json.dumps(lb_subnet_ids)}
                 backend_subnet_ids = {json.dumps(subnet_private_ids)}
                 internet_gateway_id = "{internet_gateway_id}"
                 """
@@ -103,6 +113,7 @@ def test_lb(
             len(response["LoadBalancers"]) == 1
         ), "Unexpected number of Load Balancer: %s" % pformat(response, indent=4)
 
+        assert response["LoadBalancers"][0]["Scheme"] == expected_scheme
         assert (
             len(response["LoadBalancers"][0]["AvailabilityZones"]) == 3
         ), "Unexpected number of Availability Zones: %s" % pformat(response, indent=4)
@@ -130,11 +141,17 @@ def test_lb(
                 healthy_count += 1
         assert healthy_count == 3
 
-        for a_rec in ["bogus-test-stuff", "www"]:
-            response = requests.get("https://%s.%s" % (a_rec, TEST_ZONE))
-            assert all(
-                (response.status_code == 200, response.text == "Success Message\r\n")
-            ), ("Unsuccessful HTTP response: %s" % response.text)
+        if expected_scheme == "internet-facing":
+            for a_rec in ["bogus-test-stuff", "www"]:
+                response = requests.get("https://%s.%s" % (a_rec, TEST_ZONE))
+                assert all(
+                    (
+                        response.status_code == 200,
+                        response.text == "Success Message\r\n",
+                    )
+                ), (
+                    "Unsuccessful HTTP response: %s" % response.text
+                )
 
         # Check tags on ASG instances
         asg_name = tf_output["asg_name"]["value"]
