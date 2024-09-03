@@ -91,6 +91,12 @@ variable "ami" {
   type        = string
 }
 
+variable "assume_dns" {
+  description = "If True, create DNS records provided by var.dns_a_records."
+  type        = bool
+  default     = true
+}
+
 variable "min_healthy_percentage" {
   description = "Amount of capacity in the Auto Scaling group that must remain healthy during an instance refresh to allow the operation to continue, as a percentage of the desired capacity of the Auto Scaling group."
   type        = number

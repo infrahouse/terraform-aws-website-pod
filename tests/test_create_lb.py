@@ -2,7 +2,6 @@ import json
 from pprint import pformat
 from os import path as osp
 from textwrap import dedent
-from time import sleep
 
 import pytest
 import requests

@@ -23,6 +23,11 @@ output "load_balancer_arn" {
   value       = aws_alb.website.arn
 }
 
+output "load_balancer_dns_name" {
+  description = "Load balancer DNS name."
+  value       = aws_alb.website.dns_name
+}
+
 output "target_group_arn" {
   description = "Target group ARN that listens to the service port."
   value       = aws_alb_target_group.website.arn
