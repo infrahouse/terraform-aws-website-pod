@@ -3,9 +3,12 @@ resource "aws_security_group" "backend" {
   name_prefix = "web-"
   vpc_id      = data.aws_subnet.selected.vpc_id
 
-  tags = {
-    Name : "${var.service_name} backend"
-  }
+  tags = merge(
+    {
+      Name : "${var.service_name} backend"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_ssh_local" {
@@ -15,9 +18,12 @@ resource "aws_vpc_security_group_ingress_rule" "backend_ssh_local" {
   to_port           = 22
   ip_protocol       = "tcp"
   cidr_ipv4         = data.aws_vpc.service.cidr_block
-  tags = {
-    Name = "SSH local"
-  }
+  tags = merge(
+    {
+      Name = "SSH local"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_ssh_input" {
@@ -28,9 +34,12 @@ resource "aws_vpc_security_group_ingress_rule" "backend_ssh_input" {
   to_port           = 22
   ip_protocol       = "tcp"
   cidr_ipv4         = var.ssh_cidr_block
-  tags = {
-    Name = "SSH additional"
-  }
+  tags = merge(
+    {
+      Name = "SSH additional"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_user_traffic" {
@@ -38,9 +47,12 @@ resource "aws_vpc_security_group_ingress_rule" "backend_user_traffic" {
   security_group_id            = aws_security_group.backend.id
   ip_protocol                  = "-1"
   referenced_security_group_id = aws_security_group.alb.id
-  tags = {
-    Name = "Load balancer traffic"
-  }
+  tags = merge(
+    {
+      Name = "Load balancer traffic"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_healthcheck" {
@@ -52,9 +64,12 @@ resource "aws_vpc_security_group_ingress_rule" "backend_healthcheck" {
   to_port           = var.alb_healthcheck_port
   ip_protocol       = "tcp"
   cidr_ipv4         = data.aws_vpc.service.cidr_block
-  tags = {
-    Name = "healthcheck"
-  }
+  tags = merge(
+    {
+      Name = "healthcheck"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_icmp" {
@@ -64,9 +79,12 @@ resource "aws_vpc_security_group_ingress_rule" "backend_icmp" {
   to_port           = -1
   ip_protocol       = "icmp"
   cidr_ipv4         = "0.0.0.0/0"
-  tags = {
-    Name = "ICMP traffic"
-  }
+  tags = merge(
+    {
+      Name = "ICMP traffic"
+    },
+    local.default_module_tags
+  )
 }
 
 
@@ -74,7 +92,10 @@ resource "aws_vpc_security_group_egress_rule" "backend_outgoing" {
   security_group_id = aws_security_group.backend.id
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
-  tags = {
-    Name = "outgoing traffic"
-  }
+  tags = merge(
+    {
+      Name = "outgoing traffic"
+    },
+    local.default_module_tags
+  )
 }

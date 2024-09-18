@@ -15,13 +15,7 @@ resource "aws_alb" "website" {
     }
   }
   tags = merge(
-    {
-      environment : var.environment
-      service : var.service_name
-      managed-by : "terraform"
-      account : data.aws_caller_identity.current.account_id
-
-    },
+    local.default_module_tags,
     local.access_log_tags
   )
 }
@@ -59,6 +53,7 @@ resource "aws_lb_listener" "ssl" {
   depends_on = [
     aws_acm_certificate_validation.website
   ]
+  tags = local.default_module_tags
 }
 
 resource "aws_alb_target_group" "website" {
@@ -82,17 +77,6 @@ resource "aws_alb_target_group" "website" {
     timeout             = var.alb_healthcheck_timeout
     matcher             = var.alb_healthcheck_response_code_matcher
   }
+  tags = local.default_module_tags
 
-}
-
-locals {
-  default_asg_tags = {
-    Name : "webserver"
-    environment : var.environment
-    service : var.service_name
-    managed-by : "terraform"
-    account : data.aws_caller_identity.current.account_id
-    created_by_module : "infrahouse/website-pod/aws"
-  }
-  min_elb_capacity = var.asg_min_elb_capacity != null ? var.asg_min_elb_capacity : var.asg_min_size
 }

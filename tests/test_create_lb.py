@@ -53,8 +53,8 @@ def test_lb(
                     Name: "{instance_name}"
                 }}
 
-                lb_subnet_ids = {json.dumps(lb_subnet_ids)}
-                backend_subnet_ids = {json.dumps(subnet_private_ids)}
+                lb_subnet_ids       = {json.dumps(lb_subnet_ids)}
+                backend_subnet_ids  = {json.dumps(subnet_private_ids)}
                 internet_gateway_id = "{internet_gateway_id}"
                 """
             )

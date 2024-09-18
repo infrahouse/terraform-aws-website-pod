@@ -3,9 +3,12 @@ resource "aws_security_group" "alb" {
   name_prefix = "web-"
   vpc_id      = data.aws_subnet.selected.vpc_id
 
-  tags = {
-    Name : "${var.service_name} load balancer"
-  }
+  tags = merge(
+    {
+      Name : "${var.service_name} load balancer"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_listener_port" {
@@ -15,9 +18,12 @@ resource "aws_vpc_security_group_ingress_rule" "alb_listener_port" {
   to_port           = var.alb_listener_port
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
-  tags = {
-    Name = "user traffic"
-  }
+  tags = merge(
+    {
+      Name = "user traffic"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "https" {
@@ -27,9 +33,12 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   to_port           = 443
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
-  tags = {
-    Name = "https user traffic"
-  }
+  tags = merge(
+    {
+      Name = "https user traffic"
+    },
+    local.default_module_tags
+  )
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_icmp" {
@@ -39,9 +48,12 @@ resource "aws_vpc_security_group_ingress_rule" "alb_icmp" {
   to_port           = -1
   ip_protocol       = "icmp"
   cidr_ipv4         = "0.0.0.0/0"
-  tags = {
-    Name = "ICMP traffic"
-  }
+  tags = merge(
+    {
+      Name = "ICMP traffic"
+    },
+    local.default_module_tags
+  )
 }
 
 
@@ -49,7 +61,10 @@ resource "aws_vpc_security_group_egress_rule" "alb_outgoing" {
   security_group_id = aws_security_group.alb.id
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
-  tags = {
-    Name = "outgoing traffic"
-  }
+  tags = merge(
+    {
+      Name = "outgoing traffic"
+    },
+    local.default_module_tags
+  )
 }

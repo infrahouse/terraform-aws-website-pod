@@ -32,7 +32,8 @@ resource "aws_autoscaling_group" "website" {
   dynamic "tag" {
     for_each = merge(
       local.default_asg_tags,
-      var.tags
+      var.tags,
+      data.aws_default_tags.provider.tags
     )
     content {
       key                 = tag.key
@@ -68,6 +69,20 @@ resource "aws_launch_template" "website" {
       volume_size           = var.root_volume_size
       delete_on_termination = true
     }
+  }
+  tag_specifications {
+    resource_type = "volume"
+    tags = merge(
+      data.aws_default_tags.provider.tags,
+      local.default_module_tags
+    )
+  }
+  tag_specifications {
+    resource_type = "network-interface"
+    tags = merge(
+      data.aws_default_tags.provider.tags,
+      local.default_module_tags
+    )
   }
 
   lifecycle {
