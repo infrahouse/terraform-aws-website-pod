@@ -7,6 +7,7 @@ resource "aws_acm_certificate" "website" {
   lifecycle {
     create_before_destroy = true
   }
+  tags = local.default_module_tags
 }
 
 resource "aws_route53_record" "cert_validation" {
