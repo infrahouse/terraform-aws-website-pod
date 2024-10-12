@@ -97,6 +97,18 @@ variable "min_healthy_percentage" {
   default     = 100
 }
 
+variable "asg_lifecycle_hook_launching" {
+  description = "Create a LAUNCHING lifecycle hook, if True."
+  type        = bool
+  default     = false
+}
+
+variable "asg_lifecycle_hook_terminating" {
+  description = "Create a TERMINATING lifecycle hook, if True."
+  type        = bool
+  default     = false
+}
+
 variable "asg_min_elb_capacity" {
   description = "Terraform will wait until this many EC2 instances in the autoscaling group become healthy. By default, it's equal to var.asg_min_size."
   type        = number
