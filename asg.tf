@@ -62,7 +62,9 @@ resource "aws_launch_template" "website" {
   iam_instance_profile {
     arn = module.instance_profile.instance_profile_arn
   }
-
+  metadata_options {
+    http_tokens = "required"
+  }
   block_device_mappings {
     device_name = data.aws_ami.selected.root_device_name
     ebs {
