@@ -96,6 +96,7 @@ resource "aws_launch_template" "website" {
 resource "aws_autoscaling_lifecycle_hook" "launching" {
   count                  = var.asg_lifecycle_hook_launching == true ? 1 : 0
   name                   = "launching"
+  heartbeat_timeout      = var.asg_lifecycle_hook_heartbeat_timeout
   autoscaling_group_name = aws_autoscaling_group.website.name
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
 }
@@ -103,6 +104,7 @@ resource "aws_autoscaling_lifecycle_hook" "launching" {
 resource "aws_autoscaling_lifecycle_hook" "terminating" {
   count                  = var.asg_lifecycle_hook_terminating == true ? 1 : 0
   name                   = "terminating"
+  heartbeat_timeout      = var.asg_lifecycle_hook_heartbeat_timeout
   autoscaling_group_name = aws_autoscaling_group.website.name
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_TERMINATING"
 }
