@@ -109,6 +109,13 @@ variable "asg_lifecycle_hook_terminating" {
   default     = false
 }
 
+variable "asg_lifecycle_hook_heartbeat_timeout" {
+  description = "How much time in seconds to wait until the hook is completed before proceeding with the default action."
+  type        = number
+  default     = 3600
+}
+
+
 variable "asg_min_elb_capacity" {
   description = "Terraform will wait until this many EC2 instances in the autoscaling group become healthy. By default, it's equal to var.asg_min_size."
   type        = number
