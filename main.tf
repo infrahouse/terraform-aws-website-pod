@@ -49,9 +49,9 @@ resource "aws_lb_listener" "ssl" {
   default_action {
     type = "fixed-response"
     fixed_response {
-      status_code  = "404"
+      status_code  = "400"
       content_type = "text/plain"
-      message_body = "Not found."
+      message_body = "The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing)."
     }
   }
   depends_on = [
