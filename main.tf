@@ -74,6 +74,7 @@ resource "aws_alb_listener_rule" "website" {
       ]
     }
   }
+  tags = local.default_module_tags
 }
 
 resource "aws_alb_target_group" "website" {
