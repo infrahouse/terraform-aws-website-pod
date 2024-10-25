@@ -47,12 +47,33 @@ resource "aws_lb_listener" "ssl" {
   ssl_policy        = ""
   certificate_arn   = aws_acm_certificate.website.arn
   default_action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.website.arn
+    type = "fixed-response"
+    fixed_response {
+      status_code  = "400"
+      content_type = "text/plain"
+      message_body = "The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing)."
+    }
   }
   depends_on = [
     aws_acm_certificate_validation.website
   ]
+  tags = local.default_module_tags
+}
+
+resource "aws_alb_listener_rule" "website" {
+  listener_arn = aws_lb_listener.ssl.arn
+  priority     = 99
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.website.arn
+  }
+  condition {
+    host_header {
+      values = [
+        for record in var.dns_a_records : trimprefix(join(".", [record, data.aws_route53_zone.webserver_zone.name]), ".")
+      ]
+    }
+  }
   tags = local.default_module_tags
 }
 

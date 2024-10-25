@@ -131,8 +131,21 @@ def test_lb(
             listener for listener in response["Listeners"] if listener["Port"] == 443
         ]
         listener = ssl_listeners[0]
+        response = elbv2_client.describe_rules(
+            ListenerArn=listener["ListenerArn"],
+        )
+        LOG.debug(
+            "describe_rules(%s): %s",
+            listener["ListenerArn"],
+            pformat(response, indent=4),
+        )
+        forward_rules = [
+            rule
+            for rule in response["Rules"]
+            if rule["Actions"][0]["Type"] == "forward"
+        ]
 
-        tg_arn = listener["DefaultActions"][0]["TargetGroupArn"]
+        tg_arn = forward_rules[0]["Actions"][0]["TargetGroupArn"]
         response = elbv2_client.describe_target_health(TargetGroupArn=tg_arn)
         LOG.debug("describe_target_health(%s): %s", tg_arn, pformat(response, indent=4))
         healthy_count = 0
@@ -152,6 +165,10 @@ def test_lb(
                 ), (
                     "Unsuccessful HTTP response: %s" % response.text
                 )
+            response = requests.get(
+                f"https://{tf_output['load_balancer_dns_name']['value']}", verify=False
+            )
+            assert response.status_code == 400
 
         # Check tags on ASG instances
         asg_name = tf_output["asg_name"]["value"]
