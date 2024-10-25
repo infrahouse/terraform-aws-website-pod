@@ -17,3 +17,7 @@ output "asg_name" {
 output "instance_profile_name" {
   value = module.lb.instance_profile_name
 }
+
+output "load_balancer_dns_name" {
+  value = module.lb.load_balancer_dns_name
+}
