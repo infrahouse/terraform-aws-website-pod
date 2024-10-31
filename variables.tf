@@ -304,6 +304,12 @@ variable "target_group_port" {
   default     = 80
 }
 
+variable "target_group_type" {
+  description = "Target group type: instance, ip, alb. Default is instance."
+  type        = string
+  default     = "instance"
+}
+
 variable "userdata" {
   description = "userdata for cloud-init to provision EC2 instances"
   type        = string
