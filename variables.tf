@@ -158,12 +158,6 @@ variable "asg_scale_in_protected_instances" {
   default     = "Ignore"
 }
 
-variable "attach_tagret_group_to_asg" {
-  description = "By default we want to register all ASG instances in the target group. However ECS registers targets itself. Disable it if using website-pod for ECS."
-  type        = bool
-  default     = true
-}
-
 variable "autoscaling_target_cpu_load" {
   description = "Target CPU load for autoscaling"
   default     = 60

@@ -10,7 +10,6 @@ from tests.conftest import (
     REGION,
     UBUNTU_CODENAME,
     TRACE_TERRAFORM,
-    DESTROY_AFTER,
     TEST_TIMEOUT,
     TEST_ROLE_ARN,
 )
@@ -18,7 +17,7 @@ from tests.conftest import (
 
 @pytest.mark.timeout(TEST_TIMEOUT)
 def test_update_dns(
-    service_network, ec2_client, route53_client, elbv2_client, autoscaling_client
+    service_network, ec2_client, route53_client, elbv2_client, autoscaling_client, keep_after
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
@@ -48,7 +47,7 @@ def test_update_dns(
     # Create website pod first time
     with terraform_apply(
         terraform_dir,
-        destroy_after=DESTROY_AFTER,
+        destroy_after=not keep_after,
         json_output=True,
         enable_trace=TRACE_TERRAFORM,
     ) as tf_output:
@@ -78,7 +77,7 @@ def test_update_dns(
         # Make sure the second apply succeeds
         with terraform_apply(
             terraform_dir,
-            destroy_after=DESTROY_AFTER,
+            destroy_after=not keep_after,
             json_output=True,
             enable_trace=TRACE_TERRAFORM,
         ):
