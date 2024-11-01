@@ -17,7 +17,12 @@ from tests.conftest import (
 
 @pytest.mark.timeout(TEST_TIMEOUT)
 def test_update_dns(
-    service_network, ec2_client, route53_client, elbv2_client, autoscaling_client, keep_after
+    service_network,
+    ec2_client,
+    route53_client,
+    elbv2_client,
+    autoscaling_client,
+    keep_after,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]

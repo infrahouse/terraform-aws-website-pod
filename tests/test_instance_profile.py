@@ -27,7 +27,7 @@ def test_lb(
     elbv2_client,
     autoscaling_client,
     iam_client,
-    keep_after
+    keep_after,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
