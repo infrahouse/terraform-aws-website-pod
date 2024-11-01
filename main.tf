@@ -80,7 +80,7 @@ resource "aws_alb_listener_rule" "website" {
 resource "aws_alb_target_group" "website" {
   port        = var.target_group_port
   protocol    = "HTTP"
-  target_type = "instance"
+  target_type = var.target_group_type
   vpc_id      = data.aws_subnet.selected.vpc_id
   stickiness {
     type    = "lb_cookie"

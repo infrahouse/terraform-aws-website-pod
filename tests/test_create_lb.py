@@ -13,7 +13,6 @@ from tests.conftest import (
     REGION,
     UBUNTU_CODENAME,
     TRACE_TERRAFORM,
-    DESTROY_AFTER,
     TEST_ROLE_ARN,
     TEST_TIMEOUT,
     wait_for_instance_refresh,
@@ -33,6 +32,7 @@ def test_lb(
     autoscaling_client,
     lb_subnets,
     expected_scheme,
+    keep_after,
 ):
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
@@ -62,7 +62,7 @@ def test_lb(
 
     with terraform_apply(
         terraform_dir,
-        destroy_after=DESTROY_AFTER,
+        destroy_after=not keep_after,
         json_output=True,
         enable_trace=TRACE_TERRAFORM,
     ) as tf_output:
@@ -215,7 +215,7 @@ def test_lb(
             tags["Name"] == instance_name
         ), f"Instance's name should be set to {instance_name}."
 
-    if DESTROY_AFTER:
+    if not keep_after:
         response = ec2_client.describe_volumes(
             Filters=[{"Name": "status", "Values": ["available"]}],
         )
