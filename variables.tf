@@ -319,3 +319,9 @@ variable "zone_id" {
   description = "Domain name zone ID where the website will be available"
   type        = string
 }
+
+variable "attach_tagret_group_to_asg" {
+  description = "By default we want to register all ASG instances in the target group. However ECS registers targets itself. Disable it if using website-pod for ECS."
+  type        = bool
+  default     = true
+}
