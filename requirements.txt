@@ -5,4 +5,4 @@ myst-parser ~= 2.0
 pytest ~= 7.3
 pytest-timeout ~= 2.1
 pytest-rerunfailures ~= 12.0
-requests ~= 2.31
+requests ~= 2.32

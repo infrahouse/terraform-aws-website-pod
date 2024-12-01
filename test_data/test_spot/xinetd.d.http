@@ -1,0 +1,17 @@
+# default: on
+# description: xinetdhttpservice
+service xinetdhttpservice
+{
+# Inspired by: https://github.com/rglaue/xinetd_bash_http_service/blob/master/xinetdhttpservice_config
+        disable = no
+        flags           = REUSE
+        socket_type     = stream
+        type            = UNLISTED
+        port            = 80
+        wait            = no
+        user            = nobody
+        server          = /usr/local/bin/httpd
+        log_on_failure  += USERID
+        only_from       = 0.0.0.0/0
+        per_source      = UNLIMITED
+}

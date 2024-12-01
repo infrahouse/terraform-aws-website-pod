@@ -267,6 +267,12 @@ variable "service_name" {
   default     = "website"
 }
 
+variable "on_demand_base_capacity" {
+  description = "If specified, the ASG will request spot instances and this will be the minimal number of on-demand instances."
+  type        = number
+  default     = null
+}
+
 variable "ssh_cidr_block" {
   description = "CIDR range that is allowed to SSH into the backend instances.  Format is a.b.c.d/<prefix>."
   type        = string
