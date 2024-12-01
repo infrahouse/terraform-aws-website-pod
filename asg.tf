@@ -19,9 +19,27 @@ resource "aws_autoscaling_group" "website" {
     }
     triggers = ["tag"]
   }
-  launch_template {
-    id      = aws_launch_template.website.id
-    version = aws_launch_template.website.latest_version
+  dynamic "launch_template" {
+    for_each = var.on_demand_base_capacity == null ? [1] : []
+    content {
+      id      = aws_launch_template.website.id
+      version = aws_launch_template.website.latest_version
+    }
+  }
+  dynamic "mixed_instances_policy" {
+    for_each = var.on_demand_base_capacity == null ? [] : [1]
+    content {
+      instances_distribution {
+        on_demand_base_capacity                  = var.on_demand_base_capacity
+        on_demand_percentage_above_base_capacity = 0
+      }
+      launch_template {
+        launch_template_specification {
+          launch_template_id = aws_launch_template.website.id
+          version            = aws_launch_template.website.latest_version
+        }
+      }
+    }
   }
   instance_maintenance_policy {
     min_healthy_percentage = var.asg_min_healthy_percentage

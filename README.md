@@ -34,6 +34,7 @@ module "website" {
   userdata              = module.webserver_userdata.userdata
   stickiness_enabled    = true
 }
+```
 
 ### Security groups
 
@@ -45,7 +46,7 @@ The module creates two security groups. One for the load balancer, another - for
 The load balancer security group allows traffic to TCP ports 443 and `var.alb_listener_port` (80 by default).
 
 The backend security group allows user traffic and health checks coming from the load balancer.
-Also, the security group allows SSH from the VPC wehere the backend instances reside and from `var.ssh_cidr_block`.
+Also, the security group allows SSH from the VPC where the backend instances reside and from `var.ssh_cidr_block`.
 It is 0.0.0.0/0 by default, but the goal is allow user restrict access let's say to anyone but the management VPC.
 
 Both security groups allow incoming ICMP traffic.
@@ -53,7 +54,12 @@ Both security groups allow incoming ICMP traffic.
 Additionally, the user can specify additional security groups via `var.extra_security_groups_backend`.
 They will be added to the backend instance alongside with the created backend security group.
 
-```
+### Using spot instances
+
+By default, the module launches on-demand instances only. However, if you specify `var.on_demand_base_capacity`,
+the ASG will fulfill its capacity by as many on-demand instances as `var.on_demand_base_capacity` and the rest will
+be spot instances.
+
 ## Requirements
 
 | Name | Version |
@@ -166,6 +172,7 @@ They will be added to the backend instance alongside with the created backend se
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | SSH keypair name to be deployed in EC2 instances | `string` | n/a | yes |
 | <a name="input_max_instance_lifetime_days"></a> [max\_instance\_lifetime\_days](#input\_max\_instance\_lifetime\_days) | The maximum amount of time, in \_days\_, that an instance can be in service, values must be either equal to 0 or between 7 and 365 days. | `number` | `30` | no |
 | <a name="input_min_healthy_percentage"></a> [min\_healthy\_percentage](#input\_min\_healthy\_percentage) | Amount of capacity in the Auto Scaling group that must remain healthy during an instance refresh to allow the operation to continue, as a percentage of the desired capacity of the Auto Scaling group. | `number` | `100` | no |
+| <a name="input_on_demand_base_capacity"></a> [on\_demand\_base\_capacity](#input\_on\_demand\_base\_capacity) | If specified, the ASG will request spot instances and this will be the minimal number of on-demand instances. | `number` | `null` | no |
 | <a name="input_protect_from_scale_in"></a> [protect\_from\_scale\_in](#input\_protect\_from\_scale\_in) | Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. | `bool` | `false` | no |
 | <a name="input_root_volume_size"></a> [root\_volume\_size](#input\_root\_volume\_size) | Root volume size in EC2 instance in Gigabytes | `number` | `30` | no |
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Descriptive name of a service that will use this VPC | `string` | `"website"` | no |
@@ -174,6 +181,7 @@ They will be added to the backend instance alongside with the created backend se
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | Subnet ids where load balancer should be present | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to instances in the autoscaling group. | `map(string)` | <pre>{<br/>  "Name": "webserver"<br/>}</pre> | no |
 | <a name="input_target_group_port"></a> [target\_group\_port](#input\_target\_group\_port) | TCP port that a target listens to to serve requests from the load balancer. | `number` | `80` | no |
+| <a name="input_target_group_type"></a> [target\_group\_type](#input\_target\_group\_type) | Target group type: instance, ip, alb. Default is instance. | `string` | `"instance"` | no |
 | <a name="input_userdata"></a> [userdata](#input\_userdata) | userdata for cloud-init to provision EC2 instances | `string` | n/a | yes |
 | <a name="input_wait_for_capacity_timeout"></a> [wait\_for\_capacity\_timeout](#input\_wait\_for\_capacity\_timeout) | How much time to wait until all instances are healthy | `string` | `"20m"` | no |
 | <a name="input_zone_id"></a> [zone\_id](#input\_zone\_id) | Domain name zone ID where the website will be available | `string` | n/a | yes |
