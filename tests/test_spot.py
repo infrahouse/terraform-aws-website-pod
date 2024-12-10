@@ -8,10 +8,8 @@ from infrahouse_toolkit.terraform import terraform_apply
 
 from tests.conftest import (
     TEST_ZONE,
-    REGION,
     UBUNTU_CODENAME,
     TRACE_TERRAFORM,
-    TEST_ROLE_ARN,
     TEST_TIMEOUT,
     wait_for_instance_refresh,
     LOG,
@@ -26,6 +24,8 @@ def test_lb(
     elbv2_client,
     autoscaling_client,
     keep_after,
+    aws_region,
+    test_role_arn,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
@@ -37,8 +37,8 @@ def test_lb(
         fp.write(
             dedent(
                 f"""
-                region          = "{REGION}"
-                role_arn        = "{TEST_ROLE_ARN}"
+                region          = "{aws_region}"
+                role_arn        = "{test_role_arn}"
                 dns_zone        = "{TEST_ZONE}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
 
