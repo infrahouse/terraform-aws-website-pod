@@ -5,15 +5,13 @@ from textwrap import dedent
 
 import pytest
 import requests
-from infrahouse_toolkit.terraform import terraform_apply
+from pytest_infrahouse import terraform_apply
 
 from tests.conftest import (
     LOG,
     TEST_ZONE,
-    REGION,
     UBUNTU_CODENAME,
     TRACE_TERRAFORM,
-    TEST_ROLE_ARN,
     TEST_TIMEOUT,
     wait_for_instance_refresh,
 )
@@ -33,6 +31,8 @@ def test_lb(
     lb_subnets,
     expected_scheme,
     keep_after,
+    aws_region,
+    test_role_arn,
 ):
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
@@ -45,10 +45,10 @@ def test_lb(
         fp.write(
             dedent(
                 f"""
-                region          = "{REGION}"
+                region          = "{aws_region}"
                 dns_zone        = "{TEST_ZONE}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
-                role_arn        = "{TEST_ROLE_ARN}"
+                role_arn        = "{test_role_arn}"
                 tags = {{
                     Name: "{instance_name}"
                 }}
