@@ -22,7 +22,7 @@ def test_lb(
     autoscaling_client,
     keep_after,
     aws_region,
-    test_role_arn
+    test_role_arn,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
