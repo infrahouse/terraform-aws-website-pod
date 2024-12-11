@@ -32,7 +32,6 @@ def test_lb(
     expected_scheme,
     keep_after,
     aws_region,
-    test_role_arn,
 ):
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
@@ -48,7 +47,6 @@ def test_lb(
                 region          = "{aws_region}"
                 dns_zone        = "{TEST_ZONE}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
-                role_arn        = "{test_role_arn}"
                 tags = {{
                     Name: "{instance_name}"
                 }}

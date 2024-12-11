@@ -16,13 +16,8 @@ from tests.conftest import (
 @pytest.mark.timeout(TEST_TIMEOUT)
 def test_update_dns(
     service_network,
-    ec2_client,
-    route53_client,
-    elbv2_client,
-    autoscaling_client,
     keep_after,
     aws_region,
-    test_role_arn,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
@@ -36,7 +31,6 @@ def test_update_dns(
             dedent(
                 f"""
                 region          = "{aws_region}"
-                role_arn        = "{test_role_arn}"
                 dns_zone        = "{TEST_ZONE}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
                 tags = {{
@@ -65,7 +59,6 @@ def test_update_dns(
                 dedent(
                     f"""
                         region          = "{aws_region}"
-                        role_arn        = "{test_role_arn}"
                         dns_zone        = "{TEST_ZONE}"
                         ubuntu_codename = "{UBUNTU_CODENAME}"
                         tags = {{

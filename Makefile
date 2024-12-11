@@ -24,7 +24,7 @@ install-hooks:  ## Install repo hooks
 
 .PHONY: test
 test:  ## Run tests on the module
-	pytest -xvvs --test-role-arn arn:aws:iam::303467602807:role/website-pod-tester tests/
+	pytest -xvvs tests/
 
 
 .PHONY: bootstrap
