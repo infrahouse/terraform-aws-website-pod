@@ -1,5 +1,7 @@
 variable "region" {}
-variable "role_arn" {}
+variable "role_arn" {
+  default = null
+}
 variable "dns_a_records" {
   default = ["", "www", "bogus-test-stuff"]
 }
