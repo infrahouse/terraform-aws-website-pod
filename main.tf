@@ -16,7 +16,8 @@ resource "aws_alb" "website" {
   }
   tags = merge(
     local.default_module_tags,
-    local.access_log_tags
+    local.access_log_tags,
+    var.tags,
   )
 }
 
