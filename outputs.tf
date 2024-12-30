@@ -74,3 +74,10 @@ output "instance_role_policy_attachment" {
   description = "Policy attachment id."
   value       = module.instance_profile.instance_role_policy_attachment
 }
+
+output "instance_role_arn" {
+  value = module.instance_profile.instance_role_arn
+}
+output "instance_role_name" {
+  value = module.instance_profile.instance_role_name
+}

@@ -14,6 +14,13 @@ resource "aws_alb" "website" {
       enabled = var.alb_access_log_enabled
     }
   }
+  dynamic "connection_logs" {
+    for_each = var.alb_access_log_enabled ? [{}] : []
+    content {
+      bucket  = aws_s3_bucket.access_log[0].bucket
+      enabled = var.alb_access_log_enabled
+    }
+  }
   tags = merge(
     local.default_module_tags,
     local.access_log_tags,
@@ -45,14 +52,23 @@ resource "aws_lb_listener" "ssl" {
   load_balancer_arn = aws_alb.website.arn
   port              = 443
   protocol          = "HTTPS"
-  ssl_policy        = ""
-  certificate_arn   = aws_acm_certificate.website.arn
+  # See details on
+  # https://docs.aws.amazon.com/elasticloadbalancing/latest/application/describe-ssl-policies.html
+  ssl_policy      = "ELBSecurityPolicy-TLS13-1-1-2021-06"
+  certificate_arn = aws_acm_certificate.website.arn
   default_action {
     type = "fixed-response"
     fixed_response {
       status_code  = "400"
       content_type = "text/plain"
       message_body = "The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing)."
+    }
+  }
+  dynamic "mutual_authentication" {
+    for_each = var.mtls_mode != null ? [1] : []
+    content {
+      mode            = var.mtls_mode
+      trust_store_arn = var.mtls_mode != "passthrough" ? var.mtls_trust_store_arn : null
     }
   }
   depends_on = [

@@ -250,6 +250,18 @@ variable "max_instance_lifetime_days" {
   default     = 30
 }
 
+variable "mtls_mode" {
+  description = "Can be verify or passthrough."
+  type        = string
+  default     = null
+}
+
+variable "mtls_trust_store_arn" {
+  description = "If mtls is enabled, it's an ARN of the trust store"
+  type        = string
+  default     = null
+}
+
 variable "protect_from_scale_in" {
   description = "Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in."
   type        = bool
