@@ -59,7 +59,6 @@ They will be added to the backend instance alongside with the created backend se
 By default, the module launches on-demand instances only. However, if you specify `var.on_demand_base_capacity`,
 the ASG will fulfill its capacity by as many on-demand instances as `var.on_demand_base_capacity` and the rest will
 be spot instances.
-
 ## Requirements
 
 | Name | Version |
@@ -195,6 +194,8 @@ be spot instances.
 | <a name="output_backend_security_group"></a> [backend\_security\_group](#output\_backend\_security\_group) | Map with security group id and rules |
 | <a name="output_dns_name"></a> [dns\_name](#output\_dns\_name) | DNS name of the load balancer. |
 | <a name="output_instance_profile_name"></a> [instance\_profile\_name](#output\_instance\_profile\_name) | EC2 instance profile name. |
+| <a name="output_instance_role_arn"></a> [instance\_role\_arn](#output\_instance\_role\_arn) | ARN of the instance role. |
+| <a name="output_instance_role_name"></a> [instance\_role\_name](#output\_instance\_role\_name) | Name of the instance role. |
 | <a name="output_instance_role_policy_arn"></a> [instance\_role\_policy\_arn](#output\_instance\_role\_policy\_arn) | Policy ARN attached to EC2 instance profile. |
 | <a name="output_instance_role_policy_attachment"></a> [instance\_role\_policy\_attachment](#output\_instance\_role\_policy\_attachment) | Policy attachment id. |
 | <a name="output_instance_role_policy_name"></a> [instance\_role\_policy\_name](#output\_instance\_role\_policy\_name) | Policy name attached to EC2 instance profile. |
