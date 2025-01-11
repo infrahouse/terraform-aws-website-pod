@@ -60,6 +60,16 @@ output "backend_security_group" {
   }
 }
 
+output "instance_role_arn" {
+  description = "ARN of the instance role."
+  value       = module.instance_profile.instance_role_arn
+}
+
+output "instance_role_name" {
+  description = "Name of the instance role."
+  value       = module.instance_profile.instance_role_name
+}
+
 output "instance_role_policy_name" {
   description = "Policy name attached to EC2 instance profile."
   value       = module.instance_profile.instance_role_policy_name
