@@ -48,8 +48,6 @@ resource "aws_autoscaling_group" "website" {
   dynamic "tag" {
     for_each = merge(
       local.default_asg_tags,
-      var.tags,
-      data.aws_default_tags.provider.tags
     )
     content {
       key                 = tag.key

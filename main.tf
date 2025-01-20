@@ -20,8 +20,7 @@ resource "aws_alb" "website" {
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false
-    },
-    var.tags,
+    }
   )
 }
 
@@ -43,6 +42,13 @@ resource "aws_alb_listener" "redirect_to_ssl" {
       status_code = "HTTP_301"
     }
   }
+  tags = merge(
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
+  )
 }
 
 resource "aws_lb_listener" "ssl" {

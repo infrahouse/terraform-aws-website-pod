@@ -291,11 +291,9 @@ variable "stickiness_enabled" {
 }
 
 variable "tags" {
-  description = "Tags to apply to instances in the autoscaling group."
+  description = "Tags to apply to resources creatded by the module."
   type        = map(string)
-  default = {
-    Name : "webserver"
-  }
+  default     = {}
 }
 
 variable "target_group_port" {
