@@ -17,6 +17,10 @@ resource "aws_alb" "website" {
   tags = merge(
     local.default_module_tags,
     local.access_log_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    },
     var.tags,
   )
 }
@@ -58,7 +62,13 @@ resource "aws_lb_listener" "ssl" {
   depends_on = [
     aws_acm_certificate_validation.website
   ]
-  tags = local.default_module_tags
+  tags = merge(
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
+  )
 }
 
 resource "aws_alb_listener_rule" "website" {
@@ -75,7 +85,13 @@ resource "aws_alb_listener_rule" "website" {
       ]
     }
   }
-  tags = local.default_module_tags
+  tags = merge(
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
+  )
 }
 
 resource "aws_alb_target_group" "website" {
@@ -99,6 +115,12 @@ resource "aws_alb_target_group" "website" {
     timeout             = var.alb_healthcheck_timeout
     matcher             = var.alb_healthcheck_response_code_matcher
   }
-  tags = local.default_module_tags
+  tags = merge(
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
+  )
 
 }

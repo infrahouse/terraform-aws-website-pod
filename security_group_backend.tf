@@ -51,7 +51,11 @@ resource "aws_vpc_security_group_ingress_rule" "backend_user_traffic" {
     {
       Name = "Load balancer traffic"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
 
@@ -68,7 +72,11 @@ resource "aws_vpc_security_group_ingress_rule" "backend_healthcheck" {
     {
       Name = "healthcheck"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
 
@@ -83,7 +91,11 @@ resource "aws_vpc_security_group_ingress_rule" "backend_icmp" {
     {
       Name = "ICMP traffic"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
 
@@ -96,6 +108,10 @@ resource "aws_vpc_security_group_egress_rule" "backend_outgoing" {
     {
       Name = "outgoing traffic"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
