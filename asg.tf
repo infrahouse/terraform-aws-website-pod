@@ -75,6 +75,7 @@ resource "aws_launch_template" "website" {
     [aws_security_group.backend.id],
     var.extra_security_groups_backend
   )
+  tags = local.default_module_tags
   iam_instance_profile {
     arn = module.instance_profile.instance_profile_arn
   }
@@ -99,7 +100,11 @@ resource "aws_launch_template" "website" {
     resource_type = "network-interface"
     tags = merge(
       data.aws_default_tags.provider.tags,
-      local.default_module_tags
+      local.default_module_tags,
+      {
+        VantaContainsUserData : false
+        VantaContainsEPHI : false
+      }
     )
   }
 

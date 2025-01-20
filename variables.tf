@@ -310,9 +310,60 @@ variable "target_group_type" {
   default     = "instance"
 }
 
+variable "upstream_module" {
+  description = "Module that called this module."
+  type        = string
+  default     = null
+}
+
 variable "userdata" {
   description = "userdata for cloud-init to provision EC2 instances"
   type        = string
+}
+
+variable "vanta_owner" {
+  description = "The email address of the instance's owner, and it should be set to the email address of a user in Vanta. An owner will not be assigned if there is no user in Vanta with the email specified."
+  type        = string
+  default     = null
+}
+
+variable "vanta_production_environments" {
+  description = "Environment names to consider production grade in Vanta."
+  type        = list(string)
+  default = [
+    "production",
+    "prod"
+  ]
+}
+
+variable "vanta_description" {
+  description = "This tag allows administrators to set a description, for instance, or add any other descriptive information."
+  type        = string
+  default     = null
+}
+
+variable "vanta_contains_user_data" {
+  description = "his tag allows administrators to define whether or not a resource contains user data (true) or if they do not contain user data (false)."
+  type        = bool
+  default     = false
+}
+
+variable "vanta_contains_ephi" {
+  description = "This tag allows administrators to define whether or not a resource contains electronically Protected Health Information (ePHI). It can be set to either (true) or if they do not have ephi data (false)."
+  type        = bool
+  default     = false
+}
+
+variable "vanta_user_data_stored" {
+  description = "This tag allows administrators to describe the type of user data the instance contains."
+  type        = string
+  default     = null
+}
+
+variable "vanta_no_alert" {
+  description = "Administrators can add this tag to mark a resource as out of scope for their audit. If this tag is added, the administrator will need to set a reason for why it's not relevant to their audit."
+  type        = string
+  default     = null
 }
 
 variable "wait_for_capacity_timeout" {

@@ -32,6 +32,7 @@ def test_lb(
     expected_scheme,
     keep_after,
     aws_region,
+    test_role_arn,
 ):
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
@@ -57,6 +58,14 @@ def test_lb(
                 """
             )
         )
+        if test_role_arn:
+            fp.write(
+                dedent(
+                    f"""
+                    role_arn      = "{test_role_arn}"
+                    """
+                )
+            )
 
     with terraform_apply(
         terraform_dir,

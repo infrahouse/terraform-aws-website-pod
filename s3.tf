@@ -2,7 +2,13 @@ resource "aws_s3_bucket" "access_log" {
   count         = var.alb_access_log_enabled ? 1 : 0
   bucket_prefix = "${var.alb_name_prefix}-access-log-"
   force_destroy = var.alb_access_log_force_destroy
-  tags          = local.default_module_tags
+  tags = merge(
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
+  )
 }
 
 resource "aws_s3_bucket_public_access_block" "public_access" {

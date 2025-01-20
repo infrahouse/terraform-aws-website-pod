@@ -22,7 +22,11 @@ resource "aws_vpc_security_group_ingress_rule" "alb_listener_port" {
     {
       Name = "user traffic"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
 
@@ -37,7 +41,11 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
     {
       Name = "https user traffic"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
 
@@ -52,7 +60,11 @@ resource "aws_vpc_security_group_ingress_rule" "alb_icmp" {
     {
       Name = "ICMP traffic"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
 
@@ -65,6 +77,10 @@ resource "aws_vpc_security_group_egress_rule" "alb_outgoing" {
     {
       Name = "outgoing traffic"
     },
-    local.default_module_tags
+    local.default_module_tags,
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }

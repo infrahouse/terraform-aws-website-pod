@@ -2,6 +2,9 @@ resource "aws_key_pair" "test" {
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDpgAP1z1Lxg9Uv4tam6WdJBcAftZR4ik7RsSr6aNXqfnTj4civrhd/q8qMqF6wL//3OujVDZfhJcffTzPS2XYhUxh/rRVOB3xcqwETppdykD0XZpkHkc8XtmHpiqk6E9iBI4mDwYcDqEg3/vrDAGYYsnFwWmdDinxzMH1Gei+NPTmTqU+wJ1JZvkw3WBEMZKlUVJC/+nuv+jbMmCtm7sIM4rlp2wyzLWYoidRNMK97sG8+v+mDQol/qXK3Fuetj+1f+vSx2obSzpTxL4RYg1kS6W1fBlSvstDV5bQG4HvywzN5Y8eCpwzHLZ1tYtTycZEApFdy+MSfws5vPOpggQlWfZ4vA8ujfWAF75J+WABV4DlSJ3Ng6rLMW78hVatANUnb9s4clOS8H6yAjv+bU3OElKBkQ10wNneoFIMOA3grjPvPp5r8dI0WDXPIznJThDJO5yMCy3OfCXlu38VDQa1sjVj1zAPG+Vn2DsdVrl50hWSYSB17Zww0MYEr8N5rfFE= aleks@MediaPC"
 }
 
+locals {
+  env = "development"
+}
 module "lb" {
   source = "../../"
   providers = {
@@ -9,6 +12,7 @@ module "lb" {
     aws.dns = aws
   }
   service_name                 = "website"
+  environment                  = local.env
   subnets                      = var.lb_subnet_ids
   ami                          = data.aws_ami.ubuntu.id
   backend_subnets              = var.backend_subnet_ids
@@ -23,4 +27,12 @@ module "lb" {
   tags                         = var.tags
   instance_profile_permissions = data.aws_iam_policy_document.webserver_permissions.json
   instance_role_name           = var.instance_role_name
+  vanta_owner                  = "dev@infrahouse.com"
+  vanta_contains_ephi          = true
+  vanta_contains_user_data     = true
+  vanta_description            = "Resources for service website"
+  vanta_production_environments = [
+    local.env
+  ]
+  vanta_user_data_stored = "Test data"
 }
