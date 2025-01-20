@@ -69,10 +69,10 @@ resource "aws_vpc_security_group_ingress_rule" "backend_healthcheck" {
   ip_protocol       = "tcp"
   cidr_ipv4         = data.aws_vpc.service.cidr_block
   tags = merge(
+    local.default_module_tags,
     {
       Name = "healthcheck"
     },
-    local.default_module_tags,
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false
@@ -88,10 +88,10 @@ resource "aws_vpc_security_group_ingress_rule" "backend_icmp" {
   ip_protocol       = "icmp"
   cidr_ipv4         = "0.0.0.0/0"
   tags = merge(
+    local.default_module_tags,
     {
       Name = "ICMP traffic"
     },
-    local.default_module_tags,
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false
@@ -105,10 +105,10 @@ resource "aws_vpc_security_group_egress_rule" "backend_outgoing" {
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
   tags = merge(
+    local.default_module_tags,
     {
       Name = "outgoing traffic"
     },
-    local.default_module_tags,
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false

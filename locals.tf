@@ -10,14 +10,18 @@ locals {
     var.upstream_module != null ? {
       upstream_module : var.upstream_module
     } : {},
-    local.vanta_tags
+    local.vanta_tags,
+    var.tags
   )
+
   default_asg_tags = merge(
     {
-      Name : "webserver"
+      Name : var.service_name
     },
-    local.default_module_tags
+    local.default_module_tags,
+    data.aws_default_tags.provider.tags,
   )
+
   vanta_tags = merge(
     var.vanta_owner != null ? {
       VantaOwner : var.vanta_owner
@@ -37,6 +41,7 @@ locals {
       VantaNoAlert : var.vanta_no_alert
     } : {}
   )
+
   min_elb_capacity = var.asg_min_elb_capacity != null ? var.asg_min_elb_capacity : var.asg_min_size
   # See https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
   elb_account_map = {

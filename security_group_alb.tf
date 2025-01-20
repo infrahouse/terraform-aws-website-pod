@@ -4,10 +4,10 @@ resource "aws_security_group" "alb" {
   vpc_id      = data.aws_subnet.selected.vpc_id
 
   tags = merge(
+    local.default_module_tags,
     {
       Name : "${var.service_name} load balancer"
     },
-    local.default_module_tags
   )
 }
 
@@ -19,10 +19,10 @@ resource "aws_vpc_security_group_ingress_rule" "alb_listener_port" {
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
   tags = merge(
+    local.default_module_tags,
     {
       Name = "user traffic"
     },
-    local.default_module_tags,
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false
@@ -38,10 +38,10 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
   tags = merge(
+    local.default_module_tags,
     {
       Name = "https user traffic"
     },
-    local.default_module_tags,
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false
@@ -57,10 +57,11 @@ resource "aws_vpc_security_group_ingress_rule" "alb_icmp" {
   ip_protocol       = "icmp"
   cidr_ipv4         = "0.0.0.0/0"
   tags = merge(
+    local.default_module_tags,
     {
       Name = "ICMP traffic"
     },
-    local.default_module_tags,
+
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false
@@ -74,10 +75,10 @@ resource "aws_vpc_security_group_egress_rule" "alb_outgoing" {
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
   tags = merge(
+    local.default_module_tags,
     {
       Name = "outgoing traffic"
     },
-    local.default_module_tags,
     {
       VantaContainsUserData : false
       VantaContainsEPHI : false
