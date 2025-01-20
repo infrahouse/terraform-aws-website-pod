@@ -10,7 +10,7 @@ module "instance_profile" {
   profile_name    = "${var.service_name}-instance-${random_string.profile_suffix.result}"
   role_name       = var.instance_role_name
   permissions     = var.instance_profile_permissions == null ? data.aws_iam_policy_document.default_permissions.json : var.instance_profile_permissions
-  upstream_module = "infrahouse/terraform-aws-website-pod/aws"
+  upstream_module = local.module
   tags = merge(
     local.default_module_tags,
     {
