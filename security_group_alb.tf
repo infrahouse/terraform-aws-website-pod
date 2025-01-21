@@ -8,6 +8,10 @@ resource "aws_security_group" "alb" {
     {
       Name : "${var.service_name} load balancer"
     },
+    {
+      VantaContainsUserData : false
+      VantaContainsEPHI : false
+    }
   )
 }
 
