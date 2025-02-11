@@ -55,8 +55,9 @@ resource "aws_lb_listener" "ssl" {
   load_balancer_arn = aws_alb.website.arn
   port              = 443
   protocol          = "HTTPS"
-  ssl_policy        = ""
-  certificate_arn   = aws_acm_certificate.website.arn
+  # https://docs.aws.amazon.com/elasticloadbalancing/latest/application/describe-ssl-policies.html
+  ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-Ext1-2021-06"
+  certificate_arn = aws_acm_certificate.website.arn
   default_action {
     type = "fixed-response"
     fixed_response {
