@@ -145,8 +145,9 @@ be spot instances.
 | <a name="input_alb_name_prefix"></a> [alb\_name\_prefix](#input\_alb\_name\_prefix) | Name prefix for the load balancer | `string` | `"web"` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | Image for EC2 instances | `string` | n/a | yes |
 | <a name="input_asg_lifecycle_hook_heartbeat_timeout"></a> [asg\_lifecycle\_hook\_heartbeat\_timeout](#input\_asg\_lifecycle\_hook\_heartbeat\_timeout) | How much time in seconds to wait until the hook is completed before proceeding with the default action. | `number` | `3600` | no |
-| <a name="input_asg_lifecycle_hook_launching"></a> [asg\_lifecycle\_hook\_launching](#input\_asg\_lifecycle\_hook\_launching) | Create a LAUNCHING lifecycle hook, if True. | `bool` | `false` | no |
-| <a name="input_asg_lifecycle_hook_terminating"></a> [asg\_lifecycle\_hook\_terminating](#input\_asg\_lifecycle\_hook\_terminating) | Create a TERMINATING lifecycle hook, if True. | `bool` | `false` | no |
+| <a name="input_asg_lifecycle_hook_initial"></a> [asg\_lifecycle\_hook\_initial](#input\_asg\_lifecycle\_hook\_initial) | Create a LAUNCHING initial lifecycle hook with this name. | `string` | `null` | no |
+| <a name="input_asg_lifecycle_hook_launching"></a> [asg\_lifecycle\_hook\_launching](#input\_asg\_lifecycle\_hook\_launching) | Create a LAUNCHING lifecycle hook with this name. | `string` | `null` | no |
+| <a name="input_asg_lifecycle_hook_terminating"></a> [asg\_lifecycle\_hook\_terminating](#input\_asg\_lifecycle\_hook\_terminating) | Create a TERMINATING lifecycle hook with this name. | `string` | `null` | no |
 | <a name="input_asg_max_healthy_percentage"></a> [asg\_max\_healthy\_percentage](#input\_asg\_max\_healthy\_percentage) | Specifies the upper limit on the number of instances that are in the InService or Pending state with a healthy status during an instance replacement activity. | `number` | `200` | no |
 | <a name="input_asg_max_size"></a> [asg\_max\_size](#input\_asg\_max\_size) | Maximum number of instances in ASG | `number` | `10` | no |
 | <a name="input_asg_min_elb_capacity"></a> [asg\_min\_elb\_capacity](#input\_asg\_min\_elb\_capacity) | Terraform will wait until this many EC2 instances in the autoscaling group become healthy. By default, it's equal to var.asg\_min\_size. | `number` | `null` | no |

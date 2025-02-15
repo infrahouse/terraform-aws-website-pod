@@ -41,6 +41,14 @@ resource "aws_autoscaling_group" "website" {
       }
     }
   }
+  dynamic "initial_lifecycle_hook" {
+    for_each = var.asg_lifecycle_hook_initial != null ? [1] : []
+    content {
+      lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
+      name                 = var.asg_lifecycle_hook_initial
+      heartbeat_timeout    = var.asg_lifecycle_hook_heartbeat_timeout
+    }
+  }
   instance_maintenance_policy {
     min_healthy_percentage = var.asg_min_healthy_percentage
     max_healthy_percentage = var.asg_max_healthy_percentage
@@ -114,16 +122,16 @@ resource "aws_launch_template" "website" {
 }
 
 resource "aws_autoscaling_lifecycle_hook" "launching" {
-  count                  = var.asg_lifecycle_hook_launching == true ? 1 : 0
-  name                   = "launching"
+  count                  = var.asg_lifecycle_hook_launching != null ? 1 : 0
+  name                   = var.asg_lifecycle_hook_launching
   heartbeat_timeout      = var.asg_lifecycle_hook_heartbeat_timeout
   autoscaling_group_name = aws_autoscaling_group.website.name
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
 }
 
 resource "aws_autoscaling_lifecycle_hook" "terminating" {
-  count                  = var.asg_lifecycle_hook_terminating == true ? 1 : 0
-  name                   = "terminating"
+  count                  = var.asg_lifecycle_hook_terminating != null ? 1 : 0
+  name                   = var.asg_lifecycle_hook_terminating
   heartbeat_timeout      = var.asg_lifecycle_hook_heartbeat_timeout
   autoscaling_group_name = aws_autoscaling_group.website.name
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_TERMINATING"
