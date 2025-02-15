@@ -97,16 +97,22 @@ variable "min_healthy_percentage" {
   default     = 100
 }
 
+variable "asg_lifecycle_hook_initial" {
+  description = "Create a LAUNCHING initial lifecycle hook with this name."
+  type        = string
+  default     = null
+}
+
 variable "asg_lifecycle_hook_launching" {
-  description = "Create a LAUNCHING lifecycle hook, if True."
-  type        = bool
-  default     = false
+  description = "Create a LAUNCHING lifecycle hook with this name."
+  type        = string
+  default     = null
 }
 
 variable "asg_lifecycle_hook_terminating" {
-  description = "Create a TERMINATING lifecycle hook, if True."
-  type        = bool
-  default     = false
+  description = "Create a TERMINATING lifecycle hook with this name."
+  type        = string
+  default     = null
 }
 
 variable "asg_lifecycle_hook_heartbeat_timeout" {
