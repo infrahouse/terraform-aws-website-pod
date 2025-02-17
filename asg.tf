@@ -47,6 +47,7 @@ resource "aws_autoscaling_group" "website" {
       lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
       name                 = var.asg_lifecycle_hook_initial
       heartbeat_timeout    = var.asg_lifecycle_hook_heartbeat_timeout
+      default_result       = var.asg_lifecycle_hook_launching_default_result
     }
   }
   instance_maintenance_policy {
@@ -127,6 +128,7 @@ resource "aws_autoscaling_lifecycle_hook" "launching" {
   heartbeat_timeout      = var.asg_lifecycle_hook_heartbeat_timeout
   autoscaling_group_name = aws_autoscaling_group.website.name
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
+  default_result         = var.asg_lifecycle_hook_launching_default_result
 }
 
 resource "aws_autoscaling_lifecycle_hook" "terminating" {
@@ -135,4 +137,5 @@ resource "aws_autoscaling_lifecycle_hook" "terminating" {
   heartbeat_timeout      = var.asg_lifecycle_hook_heartbeat_timeout
   autoscaling_group_name = aws_autoscaling_group.website.name
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_TERMINATING"
+  default_result         = var.asg_lifecycle_hook_terminating_default_result
 }
