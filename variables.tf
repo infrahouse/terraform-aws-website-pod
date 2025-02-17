@@ -109,10 +109,22 @@ variable "asg_lifecycle_hook_launching" {
   default     = null
 }
 
+variable "asg_lifecycle_hook_launching_default_result" {
+  description = "Default result for launching lifecycle hook."
+  type        = string
+  default     = "ABANDON"
+}
+
 variable "asg_lifecycle_hook_terminating" {
   description = "Create a TERMINATING lifecycle hook with this name."
   type        = string
   default     = null
+}
+
+variable "asg_lifecycle_hook_terminating_default_result" {
+  description = "Default result for terminating lifecycle hook."
+  type        = string
+  default     = "ABANDON"
 }
 
 variable "asg_lifecycle_hook_heartbeat_timeout" {
