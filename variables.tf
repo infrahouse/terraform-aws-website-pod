@@ -278,6 +278,7 @@ variable "root_volume_size" {
   description = "Root volume size in EC2 instance in Gigabytes"
   type        = number
   default     = 30
+  nullable    = false
 }
 variable "service_name" {
   description = "Descriptive name of a service that will use this VPC"
