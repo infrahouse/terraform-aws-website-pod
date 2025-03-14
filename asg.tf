@@ -93,7 +93,8 @@ resource "aws_launch_template" "website" {
   block_device_mappings {
     device_name = data.aws_ami.selected.root_device_name
     ebs {
-      volume_size           = var.root_volume_size
+      # 2 * RAM size is reserved for swap
+      volume_size           = var.root_volume_size + 2 * data.aws_ec2_instance_type.selected.memory_size / 1024
       delete_on_termination = true
     }
   }

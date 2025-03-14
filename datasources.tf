@@ -24,6 +24,10 @@ data "aws_ami" "selected" {
   }
 }
 
+data "aws_ec2_instance_type" "selected" {
+  instance_type = var.instance_type
+}
+
 data "aws_iam_policy_document" "default_permissions" {
   statement {
     actions = [
