@@ -18,6 +18,10 @@ resource "aws_alb" "website" {
     local.default_module_tags,
     local.access_log_tags,
     {
+      module_version : local.module_version
+    },
+
+    {
       VantaContainsUserData : false
       VantaContainsEPHI : false
     }
