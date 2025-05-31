@@ -87,8 +87,9 @@ resource "aws_launch_template" "website" {
     arn = module.instance_profile.instance_profile_arn
   }
   metadata_options {
-    http_tokens   = "required"
-    http_endpoint = "enabled"
+    http_tokens            = "required"
+    http_endpoint          = "enabled"
+    instance_metadata_tags = "enabled"
   }
   block_device_mappings {
     device_name = data.aws_ami.selected.root_device_name
