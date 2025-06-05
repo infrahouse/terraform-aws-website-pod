@@ -44,4 +44,31 @@ data "aws_iam_policy_document" "access_logs" {
       "arn:aws:s3:::${aws_s3_bucket.access_log[count.index].id}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
     ]
   }
+  statement {
+    sid    = "AllowSSLRequestsOnly"
+    effect = "Deny"
+
+    actions = [
+      "s3:*",
+    ]
+
+    resources = [
+      aws_s3_bucket.access_log[count.index].arn,
+      "${aws_s3_bucket.access_log[count.index]}/*",
+    ]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values = [
+        "false"
+      ]
+    }
+  }
+
 }
