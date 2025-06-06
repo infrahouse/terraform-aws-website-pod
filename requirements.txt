@@ -1,7 +1,7 @@
 black ~=25.1
 boto3 ~= 1.26
 infrahouse-toolkit ~= 2.0
-myst-parser ~= 2.0
+myst-parser ~=4.0
 pytest ~= 8.3
 pytest-infrahouse ~= 0.6
 pytest-timeout ~= 2.1
