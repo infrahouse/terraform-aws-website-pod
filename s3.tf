@@ -54,7 +54,7 @@ data "aws_iam_policy_document" "access_logs" {
 
     resources = [
       aws_s3_bucket.access_log[count.index].arn,
-      "${aws_s3_bucket.access_log[count.index]}/*",
+      "${aws_s3_bucket.access_log[count.index].arn}/*",
     ]
 
     principals {
