@@ -84,3 +84,9 @@ output "instance_role_policy_attachment" {
   description = "Policy attachment id."
   value       = module.instance_profile.instance_role_policy_attachment
 }
+
+output "ssl_listener_arn" {
+  description = "SSL listener ARN"
+  value = aws_lb_listener.ssl.arn
+}
+
