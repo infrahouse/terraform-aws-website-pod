@@ -6,7 +6,7 @@ import pytest
 import logging
 from os import path as osp
 
-from infrahouse_toolkit.logging import setup_logging
+from infrahouse_core.logging import setup_logging
 from infrahouse_toolkit.terraform import terraform_apply
 
 DEFAULT_PROGRESS_INTERVAL = 10
