@@ -87,6 +87,6 @@ output "instance_role_policy_attachment" {
 
 output "ssl_listener_arn" {
   description = "SSL listener ARN"
-  value = aws_lb_listener.ssl.arn
+  value       = aws_lb_listener.ssl.arn
 }
 
