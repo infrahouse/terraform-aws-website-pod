@@ -306,7 +306,7 @@ variable "subnets" {
 variable "stickiness_enabled" {
   description = "If true, enable stickiness on the target group ensuring a clients is forwarded to the same target."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "tags" {
