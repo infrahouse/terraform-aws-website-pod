@@ -1,6 +1,6 @@
 locals {
   module         = "infrahouse/website-pod/aws"
-  module_version = "5.5.0"
+  module_version = "5.6.0"
   default_module_tags = merge(
     {
       environment : var.environment
