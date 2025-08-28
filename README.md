@@ -22,7 +22,7 @@ module "website" {
     aws.dns = aws.aws-uw1
   }
   source                = "infrahouse/website-pod/aws"
-  version               = "5.6.0"
+  version               = "5.6.1"
   environment           = var.environment
   ami                   = data.aws_ami.ubuntu_22.image_id
   backend_subnets       = module.website-vpc.subnet_private_ids
@@ -204,6 +204,7 @@ be spot instances.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_acm_certificate_arn"></a> [acm\_certificate\_arn](#output\_acm\_certificate\_arn) | ARN of the ACM certificate used by the load balancer |
 | <a name="output_asg_arn"></a> [asg\_arn](#output\_asg\_arn) | ARN of the created autoscaling group |
 | <a name="output_asg_name"></a> [asg\_name](#output\_asg\_name) | Name of the created autoscaling group |
 | <a name="output_backend_security_group"></a> [backend\_security\_group](#output\_backend\_security\_group) | Map with security group id and rules |
@@ -216,6 +217,7 @@ be spot instances.
 | <a name="output_instance_role_policy_name"></a> [instance\_role\_policy\_name](#output\_instance\_role\_policy\_name) | Policy name attached to EC2 instance profile. |
 | <a name="output_load_balancer_arn"></a> [load\_balancer\_arn](#output\_load\_balancer\_arn) | Load Balancer ARN |
 | <a name="output_load_balancer_dns_name"></a> [load\_balancer\_dns\_name](#output\_load\_balancer\_dns\_name) | Load balancer DNS name. |
+| <a name="output_load_balancer_security_groups"></a> [load\_balancer\_security\_groups](#output\_load\_balancer\_security\_groups) | Security groups associated with the load balancer |
 | <a name="output_ssl_listener_arn"></a> [ssl\_listener\_arn](#output\_ssl\_listener\_arn) | SSL listener ARN |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | Target group ARN that listens to the service port. |
 | <a name="output_zone_id"></a> [zone\_id](#output\_zone\_id) | Zone id where A records are created for the service. |

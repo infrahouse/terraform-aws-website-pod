@@ -90,3 +90,13 @@ output "ssl_listener_arn" {
   value       = aws_lb_listener.ssl.arn
 }
 
+output "load_balancer_security_groups" {
+  description = "Security groups associated with the load balancer"
+  value       = aws_alb.website.security_groups
+}
+
+output "acm_certificate_arn" {
+  description = "ARN of the ACM certificate used by the load balancer"
+  value       = aws_acm_certificate.website.arn
+}
+
