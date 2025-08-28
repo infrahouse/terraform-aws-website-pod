@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: "terraform-ci"
+  group: aws-control
   cancel-in-progress: false
 
 jobs:
