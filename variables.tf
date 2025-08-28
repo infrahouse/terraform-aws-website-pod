@@ -85,8 +85,14 @@ variable "ami" {
   type        = string
 }
 
-variable "create_caa_records" {
+variable "assume_dns" {
   description = "If True, create DNS records provided by var.dns_a_records."
+  type        = bool
+  default     = true
+}
+
+variable "create_caa_records" {
+  description = "If True, create CAA records for AWS certificate authorities."
   type        = bool
   default     = true
 }
