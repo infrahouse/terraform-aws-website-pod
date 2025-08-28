@@ -85,7 +85,7 @@ variable "ami" {
   type        = string
 }
 
-variable "assume_dns" {
+variable "create_caa_records" {
   description = "If True, create DNS records provided by var.dns_a_records."
   type        = bool
   default     = true
