@@ -89,7 +89,7 @@ def test_lb(
         records = [
             a["Name"]
             for a in response["ResourceRecordSets"]
-            if a["Type"] in ["CNAME", "A"]
+            if a["Type"] in ["A", "CAA"]
         ]
         assert f"{TEST_ZONE}." in records, "Record %s is missing in %s: %s" % (
             TEST_ZONE,

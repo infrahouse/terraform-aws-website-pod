@@ -11,9 +11,9 @@ resource "aws_route53_record" "extra" {
   }
 }
 
-resource "aws_route53_record" "caa_amazon" {
+resource "aws_route53_record" "extra_caa_amazon" {
   provider = aws.dns
-  count    = var.create_caa_records ? length(var.dns_a_records) : 0
+  count    = var.assume_dns ? length(var.dns_a_records) : 0
   zone_id  = var.zone_id
   name     = trimprefix(join(".", [var.dns_a_records[count.index], data.aws_route53_zone.webserver_zone.name]), ".")
   type     = "CAA"
