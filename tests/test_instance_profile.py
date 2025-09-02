@@ -4,13 +4,11 @@ from pprint import pformat
 from textwrap import dedent
 
 import pytest
-from infrahouse_toolkit.terraform import terraform_apply
+from pytest_infrahouse import terraform_apply
 
 from tests.conftest import (
     LOG,
-    TEST_ZONE,
     UBUNTU_CODENAME,
-    TRACE_TERRAFORM,
     TERRAFORM_ROOT_DIR,
     TEST_TIMEOUT,
     wait_for_instance_refresh,
@@ -24,6 +22,7 @@ def test_lb(
     iam_client,
     keep_after,
     aws_region,
+    test_zone_name,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
@@ -35,7 +34,7 @@ def test_lb(
             dedent(
                 f"""
                 region                = "{aws_region}"
-                dns_zone              = "{TEST_ZONE}"
+                dns_zone              = "{test_zone_name}"
                 ubuntu_codename       = "{UBUNTU_CODENAME}"
                 tags = {{
                     Name: "foo-app"
@@ -53,7 +52,6 @@ def test_lb(
         terraform_dir,
         destroy_after=not keep_after,
         json_output=True,
-        enable_trace=TRACE_TERRAFORM,
     ) as tf_output:
         asg_name = tf_output["asg_name"]["value"]
         wait_for_instance_refresh(asg_name, autoscaling_client)

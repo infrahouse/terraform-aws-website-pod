@@ -1,47 +1,18 @@
 from pprint import pformat
-from textwrap import dedent
 from time import sleep
 
-import pytest
 import logging
-from os import path as osp
 
 from infrahouse_core.logging import setup_logging
-from infrahouse_toolkit.terraform import terraform_apply
 
 DEFAULT_PROGRESS_INTERVAL = 10
 TEST_TIMEOUT = 3600
-TRACE_TERRAFORM = False
-UBUNTU_CODENAME = "jammy"
+UBUNTU_CODENAME = "noble"
 
-LOG = logging.getLogger(__name__)
-TEST_ZONE = "ci-cd.infrahouse.com"
+LOG = logging.getLogger()
 TERRAFORM_ROOT_DIR = "test_data"
 
 setup_logging(LOG, debug=True)
-
-
-@pytest.fixture(scope="session")
-def instance_profile(keep_after, test_role_arn, aws_region):
-    terraform_module_dir = osp.join(TERRAFORM_ROOT_DIR, "instance_profile")
-
-    with open(osp.join(terraform_module_dir, "terraform.tfvars"), "w") as fp:
-        fp.write(
-            dedent(
-                f"""
-                region   = "{aws_region}"
-                role_arn = "{test_role_arn}"
-                """
-            )
-        )
-
-    with terraform_apply(
-        terraform_module_dir,
-        destroy_after=not keep_after,
-        json_output=True,
-        enable_trace=TRACE_TERRAFORM,
-    ) as tf_output:
-        yield tf_output
 
 
 def wait_for_instance_refresh(asg_name, autoscaling_client):
