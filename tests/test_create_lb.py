@@ -1,5 +1,5 @@
 import json
-from pprint import pformat
+from pprint import pformat, pprint
 from os import path as osp, remove
 from textwrap import dedent
 
@@ -144,7 +144,10 @@ def test_lb(
             )
 
         response = ec2_client.describe_vpcs(
-            Filters=[{"Name": "cidr", "Values": ["10.1.0.0/16"]}],
+            Filters=[
+                {"Name": "cidr", "Values": ["10.1.0.0/16"]},
+                {"Name": "vpc-id", "Values": [service_network["vpc_id"]["value"]]},
+            ],
         )
         # Check VPC is created
         assert len(response["Vpcs"]) == 1, "Unexpected number of VPC: %s" % pformat(
@@ -153,16 +156,28 @@ def test_lb(
 
         response = elbv2_client.describe_load_balancers()
         LOG.debug("describe_load_balancers(): %s", pformat(response, indent=4))
-        assert (
-            len(response["LoadBalancers"]) == 1
-        ), "Unexpected number of Load Balancer: %s" % pformat(response, indent=4)
 
-        assert response["LoadBalancers"][0]["Scheme"] == expected_scheme
-        assert (
-            len(response["LoadBalancers"][0]["AvailabilityZones"]) == 3
-        ), "Unexpected number of Availability Zones: %s" % pformat(response, indent=4)
+        # Filter load balancers by VPC ID
+        vpc_load_balancers = [
+            lb
+            for lb in response["LoadBalancers"]
+            if lb["VpcId"] == service_network["vpc_id"]["value"]
+        ]
 
-        lb_arn = response["LoadBalancers"][0]["LoadBalancerArn"]
+        assert (
+            len(vpc_load_balancers) == 1
+        ), "Unexpected number of Load Balancer in VPC: %s" % pformat(
+            vpc_load_balancers, indent=4
+        )
+
+        assert vpc_load_balancers[0]["Scheme"] == expected_scheme
+        assert (
+            len(vpc_load_balancers[0]["AvailabilityZones"]) == 3
+        ), "Unexpected number of Availability Zones: %s" % pformat(
+            vpc_load_balancers, indent=4
+        )
+
+        lb_arn = vpc_load_balancers[0]["LoadBalancerArn"]
         response = elbv2_client.describe_listeners(
             LoadBalancerArn=lb_arn,
         )
