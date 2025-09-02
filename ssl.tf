@@ -14,6 +14,9 @@ resource "aws_acm_certificate" "website" {
       VantaContainsEPHI : false
     }
   )
+  depends_on = [
+    aws_route53_record.extra_caa_amazon
+  ]
 }
 
 resource "aws_route53_record" "cert_validation" {
@@ -38,5 +41,8 @@ resource "aws_acm_certificate_validation" "website" {
   certificate_arn = aws_acm_certificate.website.arn
   validation_record_fqdns = [
     for d in aws_route53_record.cert_validation : d.fqdn
+  ]
+  depends_on = [
+    aws_route53_record.extra_caa_amazon
   ]
 }

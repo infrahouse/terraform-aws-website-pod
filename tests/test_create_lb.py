@@ -1,6 +1,6 @@
 import json
 from pprint import pformat
-from os import path as osp
+from os import path as osp, remove
 from textwrap import dedent
 
 import pytest
@@ -9,11 +9,9 @@ from pytest_infrahouse import terraform_apply
 
 from tests.conftest import (
     LOG,
-    TEST_ZONE,
-    UBUNTU_CODENAME,
-    TRACE_TERRAFORM,
     TEST_TIMEOUT,
     wait_for_instance_refresh,
+    UBUNTU_CODENAME,
 )
 
 
@@ -21,6 +19,9 @@ from tests.conftest import (
 @pytest.mark.parametrize(
     "lb_subnets,expected_scheme",
     [("subnet_public_ids", "internet-facing"), ("subnet_private_ids", "internal")],
+)
+@pytest.mark.parametrize(
+    "aws_provider_version", ["~> 5.31", "~> 6.0"], ids=["aws-5", "aws-6"]
 )
 def test_lb(
     service_network,
@@ -30,9 +31,11 @@ def test_lb(
     autoscaling_client,
     lb_subnets,
     expected_scheme,
+    aws_provider_version,
     keep_after,
     aws_region,
     test_role_arn,
+    test_zone_name,
 ):
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
@@ -40,13 +43,48 @@ def test_lb(
 
     terraform_dir = "test_data/test_create_lb"
 
+    # Clean up any existing Terraform state to ensure clean test
+    import shutil
+
+    state_files = [
+        osp.join(terraform_dir, ".terraform"),
+        osp.join(terraform_dir, ".terraform.lock.hcl"),
+    ]
+
+    for state_file in state_files:
+        try:
+            if osp.isdir(state_file):
+                shutil.rmtree(state_file)
+            elif osp.isfile(state_file):
+                remove(state_file)
+        except FileNotFoundError:
+            # File was already removed by another process
+            pass
+
+    # Update terraform.tf with the specified AWS provider version
+    terraform_tf_content = dedent(
+        f"""
+        terraform {{
+          required_providers {{
+            aws = {{
+              source  = "hashicorp/aws"
+              version = "{aws_provider_version}"
+            }}
+          }}
+        }}
+        """
+    )
+
+    with open(osp.join(terraform_dir, "terraform.tf"), "w") as fp:
+        fp.write(terraform_tf_content)
+
     instance_name = "foo-app"
     with open(osp.join(terraform_dir, "terraform.tfvars"), "w") as fp:
         fp.write(
             dedent(
                 f"""
                 region          = "{aws_region}"
-                dns_zone        = "{TEST_ZONE}"
+                dns_zone        = "{test_zone_name}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
                 tags = {{
                     Name: "{instance_name}"
@@ -71,14 +109,13 @@ def test_lb(
         terraform_dir,
         destroy_after=not keep_after,
         json_output=True,
-        enable_trace=TRACE_TERRAFORM,
     ) as tf_output:
         assert len(tf_output["network_subnet_private_ids"]) == 3
         assert len(tf_output["network_subnet_public_ids"]) == 3
 
-        response = route53_client.list_hosted_zones_by_name(DNSName=TEST_ZONE)
+        response = route53_client.list_hosted_zones_by_name(DNSName=test_zone_name)
         assert len(response["HostedZones"]) > 0, "Zone %s is not hosted by AWS: %s" % (
-            TEST_ZONE,
+            test_zone_name,
             response,
         )
         zone_id = response["HostedZones"][0]["Id"]
@@ -91,18 +128,18 @@ def test_lb(
             for a in response["ResourceRecordSets"]
             if a["Type"] in ["A", "CAA"]
         ]
-        assert f"{TEST_ZONE}." in records, "Record %s is missing in %s: %s" % (
-            TEST_ZONE,
-            TEST_ZONE,
+        assert f"{test_zone_name}." in records, "Record %s is missing in %s: %s" % (
+            test_zone_name,
+            test_zone_name,
             pformat(records, indent=4),
         )
 
         for record in ["bogus-test-stuff", "www"]:
             assert (
-                "%s.%s." % (record, TEST_ZONE) in records
+                "%s.%s." % (record, test_zone_name) in records
             ), "Record %s is missing in %s: %s" % (
                 record,
-                TEST_ZONE,
+                test_zone_name,
                 pformat(records, indent=4),
             )
 
@@ -163,7 +200,7 @@ def test_lb(
 
         if expected_scheme == "internet-facing":
             for a_rec in ["bogus-test-stuff", "www"]:
-                response = requests.get("https://%s.%s" % (a_rec, TEST_ZONE))
+                response = requests.get("https://%s.%s" % (a_rec, test_zone_name))
                 assert all(
                     (
                         response.status_code == 200,
