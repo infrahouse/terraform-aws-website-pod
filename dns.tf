@@ -20,5 +20,6 @@ resource "aws_route53_record" "extra_caa_amazon" {
   ttl      = 300
   records = [
     "0 issue \"amazon.com\"",
+    "0 issuewild \";\""
   ]
 }
