@@ -173,8 +173,8 @@ def test_lb(
         # Verify the load balancer is deployed across all availability zones.
         # The number of AZs should match the number of subnets provided.
         # We assume, service_network fixture deploys one subnet in one AZ
-        assert (
-            len(vpc_load_balancers[0]["AvailabilityZones"]) == len(lb_subnet_ids)
+        assert len(vpc_load_balancers[0]["AvailabilityZones"]) == len(
+            lb_subnet_ids
         ), "Unexpected number of Availability Zones: %s" % pformat(
             vpc_load_balancers, indent=4
         )
