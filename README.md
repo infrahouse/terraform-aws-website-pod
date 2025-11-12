@@ -59,27 +59,47 @@ They will be added to the backend instance alongside with the created backend se
 By default, the module launches on-demand instances only. However, if you specify `var.on_demand_base_capacity`,
 the ASG will fulfill its capacity by as many on-demand instances as `var.on_demand_base_capacity` and the rest will
 be spot instances.
+
+### Certificate Authority Authorization (CAA) Records
+
+The module automatically creates CAA records for each DNS A record to control which certificate authorities can issue certificates for your domain. By default, only Amazon (ACM) is allowed to issue certificates.
+
+To allow additional certificate authorities, use the `certificate_issuers` variable:
+
+```hcl
+module "website" {
+  # ... other configuration ...
+
+  # Allow both Amazon and Let's Encrypt to issue certificates
+  certificate_issuers = ["amazon.com", "letsencrypt.org"]
+}
+```
+
+The module automatically formats these domains into proper CAA records and adds a wildcard certificate blocking record (`0 issuewild ";"`) for security.
+
+<!-- BEGIN_TF_DOCS -->
+
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.5 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.11 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.11, < 7.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.11 |
-| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | ~> 5.11 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.11, < 7.0 |
+| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | >= 5.11, < 7.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_instance_profile"></a> [instance\_profile](#module\_instance\_profile) | registry.infrahouse.com/infrahouse/instance-profile/aws | 1.8.1 |
+| <a name="module_instance_profile"></a> [instance\_profile](#module\_instance\_profile) | registry.infrahouse.com/infrahouse/instance-profile/aws | 1.9.0 |
 
 ## Resources
 
@@ -100,6 +120,7 @@ be spot instances.
 | [aws_lb_listener.ssl](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
 | [aws_route53_record.cert_validation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.extra](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_route53_record.extra_caa_amazon](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_s3_bucket.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket_policy.access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.public_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
@@ -163,6 +184,7 @@ be spot instances.
 | <a name="input_attach_tagret_group_to_asg"></a> [attach\_tagret\_group\_to\_asg](#input\_attach\_tagret\_group\_to\_asg) | By default we want to register all ASG instances in the target group. However ECS registers targets itself. Disable it if using website-pod for ECS. | `bool` | `true` | no |
 | <a name="input_autoscaling_target_cpu_load"></a> [autoscaling\_target\_cpu\_load](#input\_autoscaling\_target\_cpu\_load) | Target CPU load for autoscaling | `number` | `60` | no |
 | <a name="input_backend_subnets"></a> [backend\_subnets](#input\_backend\_subnets) | Subnet ids where EC2 instances should be present | `list(string)` | n/a | yes |
+| <a name="input_certificate_issuers"></a> [certificate\_issuers](#input\_certificate\_issuers) | List of certificate authority domains allowed to issue certificates for this domain (e.g., ["amazon.com", "letsencrypt.org"]). The module will format these as CAA records. | `list(string)` | <pre>[<br/>  "amazon.com"<br/>]</pre> | no |
 | <a name="input_dns_a_records"></a> [dns\_a\_records](#input\_dns\_a\_records) | List of A records in the zone\_id that will resolve to the ALB dns name. | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |
 | <a name="input_enable_deletion_protection"></a> [enable\_deletion\_protection](#input\_enable\_deletion\_protection) | Prevent load balancer from destroying | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Name of environment | `string` | `"development"` | no |
@@ -220,3 +242,4 @@ be spot instances.
 | <a name="output_ssl_listener_arn"></a> [ssl\_listener\_arn](#output\_ssl\_listener\_arn) | SSL listener ARN |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | Target group ARN that listens to the service port. |
 | <a name="output_zone_id"></a> [zone\_id](#output\_zone\_id) | Zone id where A records are created for the service. |
+<!-- END_TF_DOCS -->

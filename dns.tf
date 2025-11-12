@@ -18,8 +18,8 @@ resource "aws_route53_record" "extra_caa_amazon" {
   name     = trimprefix(join(".", [var.dns_a_records[count.index], data.aws_route53_zone.webserver_zone.name]), ".")
   type     = "CAA"
   ttl      = 300
-  records = [
-    "0 issue \"amazon.com\"",
-    "0 issuewild \";\""
-  ]
+  records = concat(
+    [for issuer in var.certificate_issuers : "0 issue \"${issuer}\""],
+    ["0 issuewild \";\""]
+  )
 }

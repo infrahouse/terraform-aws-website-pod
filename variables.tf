@@ -394,6 +394,12 @@ variable "zone_id" {
   type        = string
 }
 
+variable "certificate_issuers" {
+  description = "List of certificate authority domains allowed to issue certificates for this domain (e.g., [\"amazon.com\", \"letsencrypt.org\"]). The module will format these as CAA records."
+  type        = list(string)
+  default     = ["amazon.com"]
+}
+
 variable "attach_tagret_group_to_asg" {
   description = "By default we want to register all ASG instances in the target group. However ECS registers targets itself. Disable it if using website-pod for ECS."
   type        = bool
