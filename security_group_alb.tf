@@ -16,16 +16,17 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_listener_port" {
-  description       = "User traffic to port ${var.alb_listener_port}"
+  for_each          = toset(var.alb_ingress_cidr_blocks)
+  description       = "User traffic to port ${var.alb_listener_port} from ${each.value}"
   security_group_id = aws_security_group.alb.id
   from_port         = var.alb_listener_port
   to_port           = var.alb_listener_port
   ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
+  cidr_ipv4         = each.value
   tags = merge(
     local.default_module_tags,
     {
-      Name = "user traffic"
+      Name = "user traffic from ${each.value}"
     },
     {
       VantaContainsUserData : false
@@ -35,16 +36,17 @@ resource "aws_vpc_security_group_ingress_rule" "alb_listener_port" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "https" {
-  description       = "User traffic to HTTPS port"
+  for_each          = toset(var.alb_ingress_cidr_blocks)
+  description       = "User traffic to HTTPS port from ${each.value}"
   security_group_id = aws_security_group.alb.id
   from_port         = 443
   to_port           = 443
   ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
+  cidr_ipv4         = each.value
   tags = merge(
     local.default_module_tags,
     {
-      Name = "https user traffic"
+      Name = "https user traffic from ${each.value}"
     },
     {
       VantaContainsUserData : false

@@ -80,6 +80,12 @@ variable "alb_name_prefix" {
   default     = "web"
 }
 
+variable "alb_ingress_cidr_blocks" {
+  description = "List of CIDR blocks allowed to access the ALB. Defaults to allow all (0.0.0.0/0)."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
 variable "ami" {
   description = "Image for EC2 instances"
   type        = string
