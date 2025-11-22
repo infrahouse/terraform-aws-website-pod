@@ -44,6 +44,7 @@ Starting from the version 2.6.0 the behavior changes, however in a backward-comp
 The module creates two security groups. One for the load balancer, another - for the backend instances.
 
 The load balancer security group allows traffic to TCP ports 443 and `var.alb_listener_port` (80 by default).
+By default, traffic is allowed from any source (0.0.0.0/0), but this can be restricted using `var.alb_ingress_cidr_blocks`.
 
 The backend security group allows user traffic and health checks coming from the load balancer.
 Also, the security group allows SSH from the VPC where the backend instances reside and from `var.ssh_cidr_block`.
@@ -76,6 +77,26 @@ module "website" {
 ```
 
 The module automatically formats these domains into proper CAA records and adds a wildcard certificate blocking record (`0 issuewild ";"`) for security.
+
+### Restricting ALB Access
+
+By default, the load balancer accepts traffic from any source (0.0.0.0/0).
+You can restrict access to specific CIDR ranges using the `alb_ingress_cidr_blocks` variable:
+
+```hcl
+module "website" {
+  # ... other configuration ...
+
+  # Allow access only from specific networks
+  alb_ingress_cidr_blocks = [
+    "10.0.0.0/8",      # Internal corporate network
+    "203.0.113.0/24"   # Specific external IP range
+  ]
+}
+```
+
+This creates separate security group rules for each CIDR block, allowing fine-grained control over
+who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`) and HTTPS (port 443).
 
 <!-- BEGIN_TF_DOCS -->
 
@@ -164,6 +185,7 @@ The module automatically formats these domains into proper CAA records and adds 
 | <a name="input_alb_healthcheck_timeout"></a> [alb\_healthcheck\_timeout](#input\_alb\_healthcheck\_timeout) | Number of seconds to timeout a check | `number` | `4` | no |
 | <a name="input_alb_healthcheck_uhealthy_threshold"></a> [alb\_healthcheck\_uhealthy\_threshold](#input\_alb\_healthcheck\_uhealthy\_threshold) | Number of times the host have to pass the test to be considered UNhealthy | `number` | `2` | no |
 | <a name="input_alb_idle_timeout"></a> [alb\_idle\_timeout](#input\_alb\_idle\_timeout) | The time in seconds that the connection is allowed to be idle. | `number` | `60` | no |
+| <a name="input_alb_ingress_cidr_blocks"></a> [alb\_ingress\_cidr\_blocks](#input\_alb\_ingress\_cidr\_blocks) | List of CIDR blocks allowed to access the ALB. Defaults to allow all (0.0.0.0/0). | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
 | <a name="input_alb_listener_port"></a> [alb\_listener\_port](#input\_alb\_listener\_port) | TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS. | `number` | `80` | no |
 | <a name="input_alb_name_prefix"></a> [alb\_name\_prefix](#input\_alb\_name\_prefix) | Name prefix for the load balancer | `string` | `"web"` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | Image for EC2 instances | `string` | n/a | yes |
