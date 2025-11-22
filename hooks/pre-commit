@@ -1,3 +1,46 @@
 #!/usr/bin/env bash
 
-echo "Happy coding!"
+set -e
+
+echo "Running pre-commit checks..."
+
+# Check if terraform is installed
+if ! command -v terraform &> /dev/null; then
+    echo "Error: terraform is not installed"
+    exit 1
+fi
+
+# Run terraform fmt check
+echo "Checking terraform formatting..."
+if ! terraform fmt -check -recursive; then
+    echo ""
+    echo "Error: Terraform files are not properly formatted"
+    echo "Run 'terraform fmt -recursive' or 'make format' to fix"
+    exit 1
+fi
+
+# Run terraform-docs to update README.md
+if command -v terraform-docs &> /dev/null; then
+    echo "Updating documentation with terraform-docs..."
+    terraform-docs markdown table --output-file README.md --output-mode inject .
+
+    # Stage the updated README.md if it was modified
+    if git diff --name-only README.md | grep -q README.md; then
+        git add README.md
+    fi
+else
+    echo "Warning: terraform-docs not found. Install from https://terraform-docs.io/"
+fi
+
+# Check if black is installed and there are Python files staged
+if command -v black &> /dev/null && git diff --cached --name-only | grep -q '\.py$'; then
+    echo "Checking Python code formatting..."
+    if ! black --check tests 2>&1 | grep -q "All done"; then
+        echo ""
+        echo "Error: Python files are not properly formatted"
+        echo "Run 'black tests' or 'make format' to fix"
+        exit 1
+    fi
+fi
+
+echo "✓ All pre-commit checks passed"
