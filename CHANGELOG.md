@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.10.0] - 2025-11-22
+
+### Features
+
+- Add configurable CIDR blocks for ALB ingress traffic ([#99](https://github.com/infrahouse/terraform-aws-website-pod/issues/99))
+
+### Miscellaneous Tasks
+
+- Add changelog automation and enhanced pre-commit validation
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
