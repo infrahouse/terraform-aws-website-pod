@@ -45,12 +45,22 @@ variable "alb_healthcheck_protocol" {
   description = "Protocol to use with the webserver that the elb will check to determine whether the instance is healthy or not"
   type        = string
   default     = "HTTP"
+
+  validation {
+    condition     = contains(["HTTP", "HTTPS"], var.alb_healthcheck_protocol)
+    error_message = "alb_healthcheck_protocol must be either 'HTTP' or 'HTTPS'."
+  }
 }
 
 variable "alb_healthcheck_healthy_threshold" {
   description = "Number of times the host have to pass the test to be considered healthy"
   type        = number
   default     = 2
+
+  validation {
+    condition     = var.alb_healthcheck_healthy_threshold >= 2 && var.alb_healthcheck_healthy_threshold <= 10
+    error_message = "Healthy threshold must be between 2 and 10."
+  }
 }
 
 variable "alb_healthcheck_uhealthy_threshold" {
@@ -67,18 +77,33 @@ variable "alb_healthcheck_unhealthy_threshold" {
   description = "Number of consecutive health check failures required before considering the target unhealthy"
   type        = number
   default     = 2
+
+  validation {
+    condition     = var.alb_healthcheck_unhealthy_threshold >= 2 && var.alb_healthcheck_unhealthy_threshold <= 10
+    error_message = "Unhealthy threshold must be between 2 and 10."
+  }
 }
 
 variable "alb_healthcheck_interval" {
   description = "Number of seconds between checks"
   type        = number
   default     = 5
+
+  validation {
+    condition     = var.alb_healthcheck_interval >= 5 && var.alb_healthcheck_interval <= 300
+    error_message = "Health check interval must be between 5 and 300 seconds."
+  }
 }
 
 variable "alb_healthcheck_timeout" {
   description = "Number of seconds to timeout a check"
   type        = number
   default     = 4
+
+  validation {
+    condition     = var.alb_healthcheck_timeout >= 2 && var.alb_healthcheck_timeout <= 120
+    error_message = "Health check timeout must be between 2 and 120 seconds."
+  }
 }
 
 variable "alb_healthcheck_response_code_matcher" {
@@ -204,6 +229,11 @@ variable "asg_scale_in_protected_instances" {
   description = "Behavior when encountering instances protected from scale in are found. Available behaviors are Refresh, Ignore, and Wait."
   type        = string
   default     = "Ignore"
+
+  validation {
+    condition     = contains(["Refresh", "Ignore", "Wait"], var.asg_scale_in_protected_instances)
+    error_message = "asg_scale_in_protected_instances must be one of: Refresh, Ignore, Wait."
+  }
 }
 
 variable "autoscaling_target_cpu_load" {
@@ -285,6 +315,11 @@ variable "health_check_type" {
   description = "Type of healthcheck the ASG uses. Can be EC2 or ELB."
   type        = string
   default     = "ELB"
+
+  validation {
+    condition     = contains(["EC2", "ELB"], var.health_check_type)
+    error_message = "health_check_type must be either 'EC2' or 'ELB'."
+  }
 }
 
 variable "key_pair_name" {
@@ -296,6 +331,11 @@ variable "max_instance_lifetime_days" {
   description = "The maximum amount of time, in _days_, that an instance can be in service, values must be either equal to 0 or between 7 and 365 days."
   type        = number
   default     = 30
+
+  validation {
+    condition     = var.max_instance_lifetime_days == 0 || (var.max_instance_lifetime_days >= 7 && var.max_instance_lifetime_days <= 365)
+    error_message = "max_instance_lifetime_days must be 0 (unlimited) or between 7 and 365 days."
+  }
 }
 
 variable "protect_from_scale_in" {
@@ -355,6 +395,11 @@ variable "target_group_type" {
   description = "Target group type: instance, ip, alb. Default is instance."
   type        = string
   default     = "instance"
+
+  validation {
+    condition     = contains(["instance", "ip", "alb"], var.target_group_type)
+    error_message = "target_group_type must be one of: instance, ip, alb."
+  }
 }
 
 variable "upstream_module" {

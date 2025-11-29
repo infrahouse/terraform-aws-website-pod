@@ -122,3 +122,39 @@ check "no_conflicting_deprecated_variables" {
     EOF
   }
 }
+
+# Cross-variable validation: health check timeout must be less than interval
+check "healthcheck_timeout_less_than_interval" {
+  assert {
+    condition     = var.alb_healthcheck_timeout < var.alb_healthcheck_interval
+    error_message = <<-EOF
+      ╔════════════════════════════════════════════════════════════════════════╗
+      ║                    ⚠️  CONFIGURATION ERROR ⚠️                          ║
+      ╚════════════════════════════════════════════════════════════════════════╝
+
+      Health check timeout must be less than health check interval.
+
+      Current configuration:
+        - Health check timeout:  ${var.alb_healthcheck_timeout} seconds
+        - Health check interval: ${var.alb_healthcheck_interval} seconds
+
+      Problem:
+        AWS requires that the timeout value is less than the interval value.
+        The health check needs enough time between checks to process the timeout.
+
+      Solution:
+        Adjust your configuration so that timeout < interval. For example:
+
+        # Good configuration:
+        alb_healthcheck_timeout  = 4   # Time to wait for response
+        alb_healthcheck_interval = 5   # Time between checks
+
+      Common configurations:
+        - Fast checks:    timeout = 2,  interval = 5  (default)
+        - Normal checks:  timeout = 5,  interval = 10
+        - Slow checks:    timeout = 10, interval = 30
+
+      ════════════════════════════════════════════════════════════════════════
+    EOF
+  }
+}

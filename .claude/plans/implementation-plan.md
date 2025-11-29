@@ -14,9 +14,9 @@
 - ✅ Phase 2 - Task 2.1: Add S3 Bucket Encryption (COMPLETED)
 - ✅ Phase 2 - Task 2.2: Add S3 Bucket Versioning (COMPLETED)
 - ✅ Phase 2 - Task 2.3: Complete ELB Account Map (COMPLETED)
-- ⬜ Phase 3 - Task 3.1: Add Health Check Validations
-- ⬜ Phase 3 - Task 3.2: Add Cross-Variable Validation
-- ⬜ Phase 3 - Task 3.3: Add Additional Variable Validations
+- ✅ Phase 3 - Task 3.1: Add Health Check Validations (COMPLETED)
+- ✅ Phase 3 - Task 3.2: Add Cross-Variable Validation (COMPLETED)
+- ✅ Phase 3 - Task 3.3: Add Additional Variable Validations (COMPLETED)
 - ⬜ Phase 4 - Task 4.1: Make ALB Listener Rule Priority Configurable
 - ⬜ Phase 4 - Task 4.2: Add Target Group Deregistration Delay
 - ⬜ Phase 4 - Task 4.3: Add Simple Security Group Outputs
@@ -143,7 +143,7 @@ locals {
 
 ## Phase 2: Security Improvements
 
-### Task 2.1: Add S3 Bucket Encryption
+### Task 2.1: Add S3 Bucket Encryption ✅ COMPLETED
 **File:** `s3.tf`
 
 **Action:** Add server-side encryption to access log bucket
@@ -174,7 +174,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "access_log" {
 
 ---
 
-### Task 2.2: Add S3 Bucket Versioning
+### Task 2.2: Add S3 Bucket Versioning ✅ COMPLETED
 **File:** `s3.tf`
 
 **Action:** Enable versioning for audit trail
@@ -202,7 +202,7 @@ resource "aws_s3_bucket_versioning" "access_log" {
 
 ---
 
-### Task 2.3: Complete ELB Account Map
+### Task 2.3: Complete ELB Account Map ✅ COMPLETED
 **File:** `locals.tf`
 
 **Action:** Add all AWS regions to elb_account_map
@@ -256,7 +256,7 @@ elb_account_map = {
 
 ## Phase 3: Variable Validations
 
-### Task 3.1: Add Health Check Validations
+### Task 3.1: Add Health Check Validations ✅ COMPLETED
 **File:** `variables.tf`
 
 **Action:** Add validation rules to catch configuration errors early
@@ -304,7 +304,7 @@ validation {
 
 ---
 
-### Task 3.2: Add Cross-Variable Validation
+### Task 3.2: Add Cross-Variable Validation ✅ COMPLETED
 **File:** `deprecations.tf` or new `validations.tf`
 
 **Action:** Validate relationships between variables
@@ -337,7 +337,7 @@ check "healthcheck_timeout_less_than_interval" {
 
 ---
 
-### Task 3.3: Add Additional Variable Validations
+### Task 3.3: Add Additional Variable Validations ✅ COMPLETED
 **File:** `variables.tf`
 
 **Variables to validate:**
