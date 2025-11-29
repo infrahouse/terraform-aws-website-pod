@@ -158,6 +158,70 @@ module "website" {
 
 For detailed migration guidance, see [UPGRADE-6.0.md](UPGRADE-6.0.md).
 
+## Development and Testing
+
+### Running Tests
+
+The module includes a comprehensive test suite. Tests use pytest and deploy real infrastructure to AWS.
+
+#### Run all tests:
+```bash
+make test
+```
+
+#### Run tests with AWS credentials:
+```bash
+make test-keep  # Keeps infrastructure for debugging
+make test-clean # Destroys infrastructure after test
+```
+
+### Troubleshooting Test Failures
+
+If a test fails in CI, you can run the specific failed test locally:
+
+#### Run a specific test:
+```bash
+# Run a specific test file and function
+make test-keep TEST_PATH=tests/test_asg_name.py::test_lb TEST_FILTER=
+
+# Run all tests in a file
+make test-keep TEST_PATH=tests/test_asg_name.py TEST_FILTER=
+```
+
+#### Available test variables:
+- `TEST_PATH` - Path to test file or specific test (default: `tests/test_create_lb.py`)
+- `TEST_FILTER` - pytest `-k` filter expression (default: `"internet-facing and aws-6"`)
+- `TEST_REGION` - AWS region for testing (default: `"us-west-2"`)
+- `TEST_ROLE` - IAM role ARN for testing (default: module-specific test role)
+
+#### Examples:
+
+```bash
+# Run with default filter
+make test-keep
+
+# Run specific test without filter
+make test-keep TEST_PATH=tests/test_spot.py::test_lb TEST_FILTER=
+
+# Run with custom filter
+make test-keep TEST_FILTER="aws-5"
+
+# Run specific test and keep resources for debugging
+make test-keep TEST_PATH=tests/test_asg_name.py::test_lb TEST_FILTER=
+
+# Run and clean up afterward
+make test-clean TEST_PATH=tests/test_asg_name.py::test_lb TEST_FILTER=
+```
+
+### Other Development Commands
+
+```bash
+make bootstrap  # Install dependencies and git hooks
+make fmt        # Format Terraform and Python code
+make lint       # Check code style
+make validate   # Validate Terraform configuration
+```
+
 <!-- BEGIN_TF_DOCS -->
 
 ## Requirements

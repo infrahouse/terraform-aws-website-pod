@@ -13,6 +13,9 @@ export PRINT_HELP_PYSCRIPT
 
 TEST_REGION="us-west-2"
 TEST_ROLE="arn:aws:iam::303467602807:role/website-pod-tester"
+TEST_SELECTOR ?= tests/
+TEST_PATH ?= tests/test_create_lb.py
+TEST_FILTER ?= "internet-facing and aws-6"
 
 help: install-hooks
 	@python -c "$$PRINT_HELP_PYSCRIPT" < Makefile
@@ -29,7 +32,7 @@ install-hooks:  ## Install repo hooks
 
 .PHONY: test
 test:  ## Run tests on the module
-	pytest -xvvs tests/
+	pytest -xvvs ${TEST_SELECTOR}
 
 .PHONY: test-keep
 test-keep:  ## Run a test and keep resources
@@ -37,8 +40,8 @@ test-keep:  ## Run a test and keep resources
 		--aws-region=${TEST_REGION} \
 		--test-role-arn=${TEST_ROLE} \
 		--keep-after \
-		-k  "internet-facing and aws-6" \
-		tests/test_create_lb.py \
+		$(if ${TEST_FILTER},-k ${TEST_FILTER}) \
+		${TEST_PATH} \
 		2>&1 | tee pytest-`date +%Y%m%d-%H%M%S`-output.log
 
 .PHONY: test-clean
@@ -46,8 +49,8 @@ test-clean:  ## Run a test and destroy resources
 	pytest -xvvs \
 		--aws-region=${TEST_REGION} \
 		--test-role-arn=${TEST_ROLE} \
-		-k  "internet-facing and aws-6" \
-		tests/test_create_lb.py \
+		$(if ${TEST_FILTER},-k ${TEST_FILTER}) \
+		${TEST_PATH} \
 		2>&1 | tee pytest-`date +%Y%m%d-%H%M%S`-output.log
 
 

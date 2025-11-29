@@ -72,6 +72,6 @@ data "aws_iam_policy_document" "webserver_permissions" {
   }
 }
 
-data "aws_route53_zone" "website" {
-  name = var.dns_zone
+data "aws_route53_zone" "test_zone" {
+  zone_id = var.zone_id
 }

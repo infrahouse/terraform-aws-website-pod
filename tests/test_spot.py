@@ -20,11 +20,13 @@ def test_lb(
     autoscaling_client,
     keep_after,
     aws_region,
-    test_zone_name,
+    test_role_arn,
+    subzone,
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
+    zone_id = subzone["subzone_id"]["value"]
 
     terraform_dir = "test_data/test_spot"
 
@@ -33,7 +35,7 @@ def test_lb(
             dedent(
                 f"""
                 region          = "{aws_region}"
-                dns_zone        = "{test_zone_name}"
+                zone_id         = "{zone_id}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
 
                 lb_subnet_ids       = {json.dumps(subnet_public_ids)}
@@ -42,6 +44,14 @@ def test_lb(
                 """
             )
         )
+        if test_role_arn:
+            fp.write(
+                dedent(
+                    f"""
+                    role_arn      = "{test_role_arn}"
+                    """
+                )
+            )
 
     with terraform_apply(
         terraform_dir,
