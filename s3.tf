@@ -20,6 +20,25 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
   restrict_public_buckets = true
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "access_log" {
+  count  = var.alb_access_log_enabled ? 1 : 0
+  bucket = aws_s3_bucket.access_log[count.index].id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "access_log" {
+  count  = var.alb_access_log_enabled ? 1 : 0
+  bucket = aws_s3_bucket.access_log[count.index].id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
 
 resource "aws_s3_bucket_policy" "access_logs" {
   count  = var.alb_access_log_enabled ? 1 : 0

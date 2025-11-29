@@ -11,9 +11,9 @@
 - ✅ Phase 1 - Task 1.1: Create Deprecation System (COMPLETED)
 - ✅ Phase 1 - Task 1.2: Add New Correctly-Named Variables (COMPLETED)
 - ✅ Phase 1 - Task 1.3: Update Variable Usage Logic (COMPLETED)
-- ⬜ Phase 2 - Task 2.1: Add S3 Bucket Encryption
-- ⬜ Phase 2 - Task 2.2: Add S3 Bucket Versioning
-- ⬜ Phase 2 - Task 2.3: Complete ELB Account Map
+- ✅ Phase 2 - Task 2.1: Add S3 Bucket Encryption (COMPLETED)
+- ✅ Phase 2 - Task 2.2: Add S3 Bucket Versioning (COMPLETED)
+- ✅ Phase 2 - Task 2.3: Complete ELB Account Map (COMPLETED)
 - ⬜ Phase 3 - Task 3.1: Add Health Check Validations
 - ⬜ Phase 3 - Task 3.2: Add Cross-Variable Validation
 - ⬜ Phase 3 - Task 3.3: Add Additional Variable Validations

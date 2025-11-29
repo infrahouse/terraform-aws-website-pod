@@ -1,5 +1,19 @@
 variable "alb_access_log_enabled" {
-  description = "Whether to maintain the access log."
+  description = <<-EOF
+    Whether to enable ALB access logging to S3.
+
+    **Security Best Practice:** Enabling access logs is recommended for:
+    - Security investigations and incident response
+    - Debugging production issues
+    - Compliance requirements (SOC2, HIPAA, PCI-DSS)
+    - AWS Well-Architected Framework best practices
+
+    When enabled, creates an encrypted, versioned S3 bucket for access logs.
+    Storage costs are minimal compared to security and operational benefits.
+
+    **Note:** In v6.0.0, this will default to `true` (enabled by default).
+    See UPGRADE-6.0.md for details.
+  EOF
   type        = bool
   default     = false
 }

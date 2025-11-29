@@ -98,6 +98,29 @@ module "website" {
 This creates separate security group rules for each CIDR block, allowing fine-grained control over
 who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`) and HTTPS (port 443).
 
+### ALB Access Logging (Security Best Practice)
+
+**Recommended:** Enable ALB access logging for security investigations, incident response, debugging, and compliance requirements.
+
+```hcl
+module "website" {
+  # ... other configuration ...
+
+  # Enable access logging (recommended for production)
+  alb_access_log_enabled = true
+}
+```
+
+When enabled, the module creates an encrypted, versioned S3 bucket that stores detailed ALB access logs. These logs are essential for:
+- **Security:** Track unauthorized access attempts and identify suspicious traffic patterns
+- **Compliance:** Meet SOC2, HIPAA, PCI-DSS, and ISO 27001 requirements
+- **Operations:** Debug production issues and analyze traffic patterns
+- **AWS Best Practices:** Aligns with AWS Well-Architected Framework security pillar
+
+**Cost Impact:** Minimal (~$4/year for moderate traffic). Storage costs are negligible compared to security and compliance benefits.
+
+**Note:** Starting in v6.0.0, access logging will be enabled by default. See `variables.tf` for details.
+
 <!-- BEGIN_TF_DOCS -->
 
 ## Requirements
@@ -145,6 +168,8 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 | [aws_s3_bucket.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket_policy.access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.public_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_server_side_encryption_configuration.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
+| [aws_s3_bucket_versioning.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
 | [aws_security_group.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_vpc_security_group_egress_rule.alb_outgoing](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
@@ -173,7 +198,7 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_alb_access_log_enabled"></a> [alb\_access\_log\_enabled](#input\_alb\_access\_log\_enabled) | Whether to maintain the access log. | `bool` | `false` | no |
+| <a name="input_alb_access_log_enabled"></a> [alb\_access\_log\_enabled](#input\_alb\_access\_log\_enabled) | Whether to enable ALB access logging to S3.<br/><br/>**Security Best Practice:** Enabling access logs is recommended for:<br/>- Security investigations and incident response<br/>- Debugging production issues<br/>- Compliance requirements (SOC2, HIPAA, PCI-DSS)<br/>- AWS Well-Architected Framework best practices<br/><br/>When enabled, creates an encrypted, versioned S3 bucket for access logs.<br/>Storage costs are minimal compared to security and operational benefits.<br/><br/>**Note:** In v6.0.0, this will default to `true` (enabled by default).<br/>See UPGRADE-6.0.md for details. | `bool` | `false` | no |
 | <a name="input_alb_access_log_force_destroy"></a> [alb\_access\_log\_force\_destroy](#input\_alb\_access\_log\_force\_destroy) | Destroy S3 bucket with access logs even if non-empty | `bool` | `false` | no |
 | <a name="input_alb_healthcheck_enabled"></a> [alb\_healthcheck\_enabled](#input\_alb\_healthcheck\_enabled) | Whether health checks are enabled. | `bool` | `true` | no |
 | <a name="input_alb_healthcheck_healthy_threshold"></a> [alb\_healthcheck\_healthy\_threshold](#input\_alb\_healthcheck\_healthy\_threshold) | Number of times the host have to pass the test to be considered healthy | `number` | `2` | no |
