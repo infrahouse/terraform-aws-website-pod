@@ -3,7 +3,9 @@ resource "aws_alb" "website" {
   enable_deletion_protection = var.enable_deletion_protection
   subnets                    = var.subnets
   idle_timeout               = var.alb_idle_timeout
-  internal                   = !data.aws_subnet.selected.map_public_ip_on_launch
+  # ALB is internal if subnets don't auto-assign public IPs
+  # Otherwise, it's internet-facing (publicly accessible)
+  internal = !data.aws_subnet.selected.map_public_ip_on_launch
   security_groups = [
     aws_security_group.alb.id
   ]

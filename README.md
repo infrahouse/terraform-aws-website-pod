@@ -121,6 +121,43 @@ When enabled, the module creates an encrypted, versioned S3 bucket that stores d
 
 **Note:** Starting in v6.0.0, access logging will be enabled by default. See `variables.tf` for details.
 
+## Deprecated Variables
+
+The following variables contain typos and are deprecated. They will be removed in **v6.0.0**.
+
+| Deprecated Variable (v5.x)          | Correct Variable (Use This)          | Status                    |
+|-------------------------------------|--------------------------------------|---------------------------|
+| `alb_healthcheck_uhealthy_threshold`| `alb_healthcheck_unhealthy_threshold`| ⚠️  Deprecated in v5.11.0 |
+| `attach_tagret_group_to_asg`        | `attach_target_group_to_asg`         | ⚠️  Deprecated in v5.11.0 |
+
+### Migration Instructions
+
+If you're using the deprecated variables, update your code before upgrading to v6.0.0:
+
+**Before:**
+```hcl
+module "website" {
+  source  = "infrahouse/website-pod/aws"
+  version = "~> 5.0"
+
+  alb_healthcheck_uhealthy_threshold = 3  # Typo: "uhealthy"
+  attach_tagret_group_to_asg         = true  # Typo: "tagret"
+}
+```
+
+**After:**
+```hcl
+module "website" {
+  source  = "infrahouse/website-pod/aws"
+  version = "~> 5.11"  # or "~> 6.0" when available
+
+  alb_healthcheck_unhealthy_threshold = 3  # Correct spelling
+  attach_target_group_to_asg          = true  # Correct spelling
+}
+```
+
+For detailed migration guidance, see [UPGRADE-6.0.md](UPGRADE-6.0.md).
+
 <!-- BEGIN_TF_DOCS -->
 
 ## Requirements
@@ -135,9 +172,9 @@ When enabled, the module creates an encrypted, versioned S3 bucket that stores d
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.11, < 7.0 |
-| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | >= 5.11, < 7.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.23.0 |
+| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | 6.23.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
 ## Modules
 
@@ -216,8 +253,8 @@ When enabled, the module creates an encrypted, versioned S3 bucket that stores d
 | <a name="input_alb_name_prefix"></a> [alb\_name\_prefix](#input\_alb\_name\_prefix) | Name prefix for the load balancer | `string` | `"web"` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | Image for EC2 instances | `string` | n/a | yes |
 | <a name="input_asg_lifecycle_hook_heartbeat_timeout"></a> [asg\_lifecycle\_hook\_heartbeat\_timeout](#input\_asg\_lifecycle\_hook\_heartbeat\_timeout) | How much time in seconds to wait until the hook is completed before proceeding with the default action. | `number` | `3600` | no |
-| <a name="input_asg_lifecycle_hook_initial"></a> [asg\_lifecycle\_hook\_initial](#input\_asg\_lifecycle\_hook\_initial) | Create a LAUNCHING initial lifecycle hook with this name. | `string` | `null` | no |
-| <a name="input_asg_lifecycle_hook_launching"></a> [asg\_lifecycle\_hook\_launching](#input\_asg\_lifecycle\_hook\_launching) | Create a LAUNCHING lifecycle hook with this name. | `string` | `null` | no |
+| <a name="input_asg_lifecycle_hook_initial"></a> [asg\_lifecycle\_hook\_initial](#input\_asg\_lifecycle\_hook\_initial) | Name for an initial LAUNCHING lifecycle hook configured via the initial\_lifecycle\_hook<br/>block in the ASG. This hook is evaluated during ASG creation.<br/>Only one initial hook is allowed per ASG.<br/><br/>Use this for simple lifecycle hooks that don't require additional configuration. | `string` | `null` | no |
+| <a name="input_asg_lifecycle_hook_launching"></a> [asg\_lifecycle\_hook\_launching](#input\_asg\_lifecycle\_hook\_launching) | Name for a LAUNCHING lifecycle hook configured via a separate<br/>aws\_autoscaling\_lifecycle\_hook resource. This allows for more complex configurations<br/>and can be created after the ASG exists.<br/><br/>Use this if you need to attach SNS notifications or additional settings to the lifecycle hook. | `string` | `null` | no |
 | <a name="input_asg_lifecycle_hook_launching_default_result"></a> [asg\_lifecycle\_hook\_launching\_default\_result](#input\_asg\_lifecycle\_hook\_launching\_default\_result) | Default result for launching lifecycle hook. | `string` | `"ABANDON"` | no |
 | <a name="input_asg_lifecycle_hook_terminating"></a> [asg\_lifecycle\_hook\_terminating](#input\_asg\_lifecycle\_hook\_terminating) | Create a TERMINATING lifecycle hook with this name. | `string` | `null` | no |
 | <a name="input_asg_lifecycle_hook_terminating_default_result"></a> [asg\_lifecycle\_hook\_terminating\_default\_result](#input\_asg\_lifecycle\_hook\_terminating\_default\_result) | Default result for terminating lifecycle hook. | `string` | `"ABANDON"` | no |
@@ -240,7 +277,7 @@ When enabled, the module creates an encrypted, versioned S3 bucket that stores d
 | <a name="input_extra_security_groups_backend"></a> [extra\_security\_groups\_backend](#input\_extra\_security\_groups\_backend) | A list of security group ids to assign to backend instances | `list(string)` | `[]` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | ASG will wait up to this number of seconds for instance to become healthy | `number` | `600` | no |
 | <a name="input_health_check_type"></a> [health\_check\_type](#input\_health\_check\_type) | Type of healthcheck the ASG uses. Can be EC2 or ELB. | `string` | `"ELB"` | no |
-| <a name="input_instance_profile_permissions"></a> [instance\_profile\_permissions](#input\_instance\_profile\_permissions) | A JSON with a permissions policy document. The policy will be attached to the instance profile. | `string` | `null` | no |
+| <a name="input_instance_profile_permissions"></a> [instance\_profile\_permissions](#input\_instance\_profile\_permissions) | A JSON policy document to attach to the instance profile.<br/>This should be the output of an aws\_iam\_policy\_document data source.<br/><br/>Example:<br/>  instance\_profile\_permissions = data.aws\_iam\_policy\_document.my\_policy.json<br/><br/>If not specified, defaults to a minimal policy allowing sts:GetCallerIdentity. | `string` | `null` | no |
 | <a name="input_instance_role_name"></a> [instance\_role\_name](#input\_instance\_role\_name) | If specified, the instance profile role will have this name. Otherwise, the role name will be generated. | `string` | `null` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instances type | `string` | `"t3.micro"` | no |
 | <a name="input_internet_gateway_id"></a> [internet\_gateway\_id](#input\_internet\_gateway\_id) | Not used, but AWS Internet Gateway must be present. Ensure by passing its id. | `string` | n/a | yes |

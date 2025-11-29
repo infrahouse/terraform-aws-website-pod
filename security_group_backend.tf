@@ -72,7 +72,9 @@ resource "aws_vpc_security_group_ingress_rule" "backend_user_traffic" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "backend_healthcheck" {
-  # Add the rule only if the healthcheck port is different from the traffic port
+  # Add dedicated healthcheck security group rule only if the healthcheck port
+  # differs from the target group port. If they're the same, the main traffic
+  # rule (backend_user_traffic) already allows the healthcheck traffic.
   count             = var.alb_healthcheck_port == var.target_group_port || var.alb_healthcheck_port == "traffic-port" ? 0 : 1
   description       = "Health checks from the Load Balancer"
   security_group_id = aws_security_group.backend.id

@@ -20,9 +20,9 @@
 - ⏭️ Phase 4 - Task 4.1: Make ALB Listener Rule Priority Configurable (SKIPPED - Documented instead)
 - ✅ Phase 4 - Task 4.2: Add Target Group Deregistration Delay (COMPLETED)
 - ✅ Phase 4 - Task 4.3: Add Simple Security Group Outputs (COMPLETED)
-- ⬜ Phase 5 - Task 5.1: Improve Variable Descriptions
-- ⬜ Phase 5 - Task 5.2: Add Inline Comments
-- ⬜ Phase 5 - Task 5.3: Update CHANGELOG.md
+- ✅ Phase 5 - Task 5.1: Improve Variable Descriptions (COMPLETED)
+- ✅ Phase 5 - Task 5.2: Add Inline Comments (COMPLETED)
+- ⏭️ Phase 5 - Task 5.3: Update CHANGELOG.md (AUTOMATED via git-cliff)
 - ⬜ Phase 5 - Task 5.4: Create UPGRADE-6.0.md
 - ⬜ Phase 5 - Task 5.5: Update README.md
 - ⬜ Phase 6 - Task 6.1: Update Module Version
@@ -527,7 +527,7 @@ output "backend_security_group_id" {
 
 ## Phase 5: Documentation Improvements
 
-### Task 5.1: Improve Variable Descriptions
+### Task 5.1: Improve Variable Descriptions ✅ COMPLETED
 **File:** `variables.tf`
 
 **Action:** Use HEREDOC for long descriptions
@@ -587,7 +587,7 @@ variable "asg_lifecycle_hook_launching" {
 
 ---
 
-### Task 5.2: Add Inline Comments
+### Task 5.2: Add Inline Comments ✅ COMPLETED
 **Files:** Various `.tf` files
 
 **Action:** Add explanatory comments for complex logic
@@ -639,12 +639,32 @@ locals {
 
 ---
 
-### Task 5.3: Update CHANGELOG.md
+### Task 5.3: Update CHANGELOG.md ⏭️ AUTOMATED via git-cliff
 **File:** `CHANGELOG.md`
 
-**Action:** Add v5.11.0 section with all changes
+**Decision:** Use git-cliff to auto-generate CHANGELOG from conventional commit messages
 
-**Template:**
+**Rationale:**
+- git-cliff is already configured in `make release-*` targets
+- Auto-generates from commit messages (conventional commits format)
+- Avoids duplicate maintenance and merge conflicts
+- Ensures consistency with commit history
+
+**Implementation:**
+1. ✅ Commit message validation hook installed (`hooks/commit-msg`)
+2. ✅ All commits follow conventional commit format
+3. ⬜ Run `make release-minor` when ready (git-cliff generates CHANGELOG automatically)
+4. ⬜ Review and adjust generated CHANGELOG if needed (add migration notes, etc.)
+
+**Conventional Commit Types Used:**
+- `feat:` - New features (deregistration delay, security group outputs, etc.)
+- `security:` - Security improvements (S3 encryption, versioning, region support)
+- `docs:` - Documentation improvements (HEREDOC descriptions, inline comments)
+- `fix:` - Bug fixes (typo corrections in variable names)
+
+**Why:** Automated changelog from existing tooling, no duplicate maintenance
+
+**Original Template (for reference):**
 ```markdown
 ## [5.11.0] - 2025-11-29
 

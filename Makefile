@@ -23,6 +23,8 @@ install-hooks:  ## Install repo hooks
 	@test -d .git/hooks || (echo "Looks like you are not in a Git repo" ; exit 1)
 	@test -L .git/hooks/pre-commit || ln -fs ../../hooks/pre-commit .git/hooks/pre-commit
 	@chmod +x .git/hooks/pre-commit
+	@test -L .git/hooks/commit-msg || ln -fs ../../hooks/commit-msg .git/hooks/commit-msg
+	@chmod +x .git/hooks/commit-msg
 
 
 .PHONY: test
@@ -50,7 +52,7 @@ test-clean:  ## Run a test and destroy resources
 
 
 .PHONY: bootstrap
-bootstrap: ## bootstrap the development environment
+bootstrap: install-hooks ## bootstrap the development environment
 	pip install -U "pip ~= 25.2"
 	pip install -U "setuptools ~= 80.9"
 	pip install -r requirements.txt

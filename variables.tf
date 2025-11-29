@@ -153,13 +153,25 @@ variable "min_healthy_percentage" {
 }
 
 variable "asg_lifecycle_hook_initial" {
-  description = "Create a LAUNCHING initial lifecycle hook with this name."
+  description = <<-EOF
+    Name for an initial LAUNCHING lifecycle hook configured via the initial_lifecycle_hook
+    block in the ASG. This hook is evaluated during ASG creation.
+    Only one initial hook is allowed per ASG.
+
+    Use this for simple lifecycle hooks that don't require additional configuration.
+  EOF
   type        = string
   default     = null
 }
 
 variable "asg_lifecycle_hook_launching" {
-  description = "Create a LAUNCHING lifecycle hook with this name."
+  description = <<-EOF
+    Name for a LAUNCHING lifecycle hook configured via a separate
+    aws_autoscaling_lifecycle_hook resource. This allows for more complex configurations
+    and can be created after the ASG exists.
+
+    Use this if you need to attach SNS notifications or additional settings to the lifecycle hook.
+  EOF
   type        = string
   default     = null
 }
@@ -286,7 +298,15 @@ variable "instance_role_name" {
 }
 
 variable "instance_profile_permissions" {
-  description = "A JSON with a permissions policy document. The policy will be attached to the instance profile."
+  description = <<-EOF
+    A JSON policy document to attach to the instance profile.
+    This should be the output of an aws_iam_policy_document data source.
+
+    Example:
+      instance_profile_permissions = data.aws_iam_policy_document.my_policy.json
+
+    If not specified, defaults to a minimal policy allowing sts:GetCallerIdentity.
+  EOF
   type        = string
   default     = null
 }
