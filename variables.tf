@@ -40,7 +40,17 @@ variable "alb_healthcheck_healthy_threshold" {
 }
 
 variable "alb_healthcheck_uhealthy_threshold" {
-  description = "Number of times the host have to pass the test to be considered UNhealthy"
+  description = <<-EOF
+    ⚠️  DEPRECATED - Contains typo, use 'alb_healthcheck_unhealthy_threshold' instead.
+    This variable will be removed in v6.0.0. See deprecations.tf for details.
+    Number of times the host must fail the test to be considered unhealthy.
+  EOF
+  type        = number
+  default     = null
+}
+
+variable "alb_healthcheck_unhealthy_threshold" {
+  description = "Number of consecutive health check failures required before considering the target unhealthy"
   type        = number
   default     = 2
 }
@@ -407,7 +417,17 @@ variable "certificate_issuers" {
 }
 
 variable "attach_tagret_group_to_asg" {
-  description = "By default we want to register all ASG instances in the target group. However ECS registers targets itself. Disable it if using website-pod for ECS."
+  description = <<-EOF
+    ⚠️  DEPRECATED - Contains typo, use 'attach_target_group_to_asg' instead.
+    This variable will be removed in v6.0.0. See deprecations.tf for details.
+    Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself.
+  EOF
+  type        = bool
+  default     = null
+}
+
+variable "attach_target_group_to_asg" {
+  description = "Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself."
   type        = bool
   default     = true
 }

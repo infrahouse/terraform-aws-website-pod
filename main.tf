@@ -121,7 +121,7 @@ resource "aws_alb_target_group" "website" {
     port                = var.alb_healthcheck_port
     protocol            = var.alb_healthcheck_protocol
     healthy_threshold   = var.alb_healthcheck_healthy_threshold
-    unhealthy_threshold = var.alb_healthcheck_uhealthy_threshold
+    unhealthy_threshold = local.unhealthy_threshold
     interval            = var.alb_healthcheck_interval
     timeout             = var.alb_healthcheck_timeout
     matcher             = var.alb_healthcheck_response_code_matcher

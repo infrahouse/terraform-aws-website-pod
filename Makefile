@@ -36,7 +36,8 @@ test-keep:  ## Run a test and keep resources
 		--test-role-arn=${TEST_ROLE} \
 		--keep-after \
 		-k  "internet-facing and aws-6" \
-		tests/test_create_lb.py
+		tests/test_create_lb.py \
+		2>&1 | tee pytest-`date +%Y%m%d-%H%M%S`-output.log
 
 .PHONY: test-clean
 test-clean:  ## Run a test and destroy resources
@@ -44,7 +45,8 @@ test-clean:  ## Run a test and destroy resources
 		--aws-region=${TEST_REGION} \
 		--test-role-arn=${TEST_ROLE} \
 		-k  "internet-facing and aws-6" \
-		tests/test_create_lb.py
+		tests/test_create_lb.py \
+		2>&1 | tee pytest-`date +%Y%m%d-%H%M%S`-output.log
 
 
 .PHONY: bootstrap

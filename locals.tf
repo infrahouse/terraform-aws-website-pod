@@ -52,4 +52,16 @@ locals {
     "us-west-2" : "797873946194"
 
   }
+
+  # Backward compatibility for deprecated variables with typos
+  # Priority: new variable > old variable > default (the default is already set on the new variable)
+  unhealthy_threshold = coalesce(
+    var.alb_healthcheck_unhealthy_threshold,
+    var.alb_healthcheck_uhealthy_threshold,
+  )
+
+  attach_tg_to_asg = coalesce(
+    var.attach_target_group_to_asg,
+    var.attach_tagret_group_to_asg,
+  )
 }

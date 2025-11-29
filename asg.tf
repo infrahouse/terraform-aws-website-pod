@@ -10,7 +10,7 @@ resource "aws_autoscaling_group" "website" {
   max_instance_lifetime     = var.max_instance_lifetime_days * 24 * 3600
   health_check_grace_period = var.health_check_grace_period
   protect_from_scale_in     = var.protect_from_scale_in
-  target_group_arns         = var.target_group_type == "instance" && var.attach_tagret_group_to_asg ? [aws_alb_target_group.website.arn] : []
+  target_group_arns         = var.target_group_type == "instance" && local.attach_tg_to_asg ? [aws_alb_target_group.website.arn] : []
   instance_refresh {
     strategy = "Rolling"
     preferences {
