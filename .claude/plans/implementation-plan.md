@@ -17,9 +17,9 @@
 - ✅ Phase 3 - Task 3.1: Add Health Check Validations (COMPLETED)
 - ✅ Phase 3 - Task 3.2: Add Cross-Variable Validation (COMPLETED)
 - ✅ Phase 3 - Task 3.3: Add Additional Variable Validations (COMPLETED)
-- ⬜ Phase 4 - Task 4.1: Make ALB Listener Rule Priority Configurable
-- ⬜ Phase 4 - Task 4.2: Add Target Group Deregistration Delay
-- ⬜ Phase 4 - Task 4.3: Add Simple Security Group Outputs
+- ⏭️ Phase 4 - Task 4.1: Make ALB Listener Rule Priority Configurable (SKIPPED - Documented instead)
+- ✅ Phase 4 - Task 4.2: Add Target Group Deregistration Delay (COMPLETED)
+- ✅ Phase 4 - Task 4.3: Add Simple Security Group Outputs (COMPLETED)
 - ⬜ Phase 5 - Task 5.1: Improve Variable Descriptions
 - ⬜ Phase 5 - Task 5.2: Add Inline Comments
 - ⬜ Phase 5 - Task 5.3: Update CHANGELOG.md
@@ -393,10 +393,19 @@ validation {
 
 ## Phase 4: Feature Enhancements
 
-### Task 4.1: Make ALB Listener Rule Priority Configurable
-**File:** `variables.tf`
+### Task 4.1: Make ALB Listener Rule Priority Configurable ⏭️ SKIPPED
+**File:** `main.tf:87-90`
 
-**Action:** Add new variable for listener rule priority
+**Decision:** Document hardcoded priority instead of making it configurable
+
+**Rationale:**
+- Users have never requested this feature
+- 99% of use cases involve a single target group
+- Priority 99 leaves plenty of room for custom rules (1-98 higher, 100+ lower)
+- YAGNI principle - don't add complexity without demonstrated need
+- Simpler module with fewer variables to maintain
+
+**Action Taken:** Added inline comment documenting the fixed priority
 
 **Implementation:**
 ```hcl
@@ -432,8 +441,8 @@ resource "aws_alb_listener_rule" "website" {
 
 ---
 
-### Task 4.2: Add Target Group Deregistration Delay
-**File:** `variables.tf`
+### Task 4.2: Add Target Group Deregistration Delay ✅ COMPLETED
+**File:** `variables.tf`, `main.tf`
 
 **Action:** Add variable for deregistration delay
 
@@ -486,7 +495,7 @@ resource "aws_alb_target_group" "website" {
 
 ---
 
-### Task 4.3: Add Simple Security Group Outputs
+### Task 4.3: Add Simple Security Group Outputs ✅ COMPLETED
 **File:** `outputs.tf`
 
 **Action:** Add dedicated outputs for security group IDs

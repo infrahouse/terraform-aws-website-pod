@@ -402,6 +402,27 @@ variable "target_group_type" {
   }
 }
 
+variable "target_group_deregistration_delay" {
+  description = <<-EOF
+    Time in seconds for ALB to wait before deregistering a target.
+    During this time, the target continues to receive existing connections
+    but no new connections. This allows in-flight requests to complete.
+
+    Common use cases:
+    - Reduce for faster deployments (e.g., 30s for stateless apps)
+    - Increase for long-running requests (e.g., 600s for file uploads)
+
+    Valid range: 0-3600 seconds. AWS default is 300 seconds.
+  EOF
+  type        = number
+  default     = 300
+
+  validation {
+    condition     = var.target_group_deregistration_delay >= 0 && var.target_group_deregistration_delay <= 3600
+    error_message = "Deregistration delay must be between 0 and 3600 seconds."
+  }
+}
+
 variable "upstream_module" {
   description = "Module that called this module."
   type        = string

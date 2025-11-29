@@ -84,7 +84,10 @@ resource "aws_lb_listener" "ssl" {
 
 resource "aws_alb_listener_rule" "website" {
   listener_arn = aws_lb_listener.ssl.arn
-  priority     = 99
+  # Priority is fixed at 99, leaving room for users to add custom rules:
+  # - Priorities 1-98: Higher priority (evaluated before this rule)
+  # - Priorities 100+: Lower priority (evaluated after this rule)
+  priority = 99
   action {
     type             = "forward"
     target_group_arn = aws_alb_target_group.website.arn
@@ -106,10 +109,11 @@ resource "aws_alb_listener_rule" "website" {
 }
 
 resource "aws_alb_target_group" "website" {
-  port        = var.target_group_port
-  protocol    = "HTTP"
-  target_type = var.target_group_type
-  vpc_id      = data.aws_subnet.selected.vpc_id
+  port                 = var.target_group_port
+  protocol             = "HTTP"
+  target_type          = var.target_group_type
+  vpc_id               = data.aws_subnet.selected.vpc_id
+  deregistration_delay = var.target_group_deregistration_delay
   stickiness {
     type    = "lb_cookie"
     enabled = var.stickiness_enabled
