@@ -110,3 +110,24 @@ output "backend_security_group_id" {
   value       = aws_security_group.backend.id
 }
 
+# Vanta Compliance: CloudWatch Alarms
+output "alarm_sns_topic_arn" {
+  description = "ARN of the SNS topic for ALB CloudWatch alarms (if created). IMPORTANT: Email subscribers must confirm their subscription via the AWS confirmation email to receive notifications."
+  value       = length(aws_sns_topic.alarms) > 0 ? aws_sns_topic.alarms[0].arn : null
+}
+
+output "alarm_sns_topic_name" {
+  description = "Name of the SNS topic for ALB CloudWatch alarms (if created)"
+  value       = length(aws_sns_topic.alarms) > 0 ? aws_sns_topic.alarms[0].name : null
+}
+
+output "cloudwatch_alarm_arns" {
+  description = "ARNs of CloudWatch alarms created for ALB and ASG monitoring"
+  value = {
+    unhealthy_hosts  = length(aws_cloudwatch_metric_alarm.unhealthy_host_count) > 0 ? aws_cloudwatch_metric_alarm.unhealthy_host_count[0].arn : null
+    high_latency     = length(aws_cloudwatch_metric_alarm.target_response_time) > 0 ? aws_cloudwatch_metric_alarm.target_response_time[0].arn : null
+    low_success_rate = length(aws_cloudwatch_metric_alarm.low_success_rate) > 0 ? aws_cloudwatch_metric_alarm.low_success_rate[0].arn : null
+    high_cpu         = length(aws_cloudwatch_metric_alarm.cpu_utilization) > 0 ? aws_cloudwatch_metric_alarm.cpu_utilization[0].arn : null
+  }
+}
+

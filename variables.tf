@@ -537,3 +537,226 @@ variable "sns_topic_alarm_arn" {
   type        = string
   default     = null
 }
+
+# Vanta Compliance: CloudWatch Alarms
+variable "alarm_emails" {
+  description = <<-EOF
+    List of email addresses to receive CloudWatch alarm notifications for ALB monitoring.
+
+    ⚠️  **IMPORTANT - EMAIL CONFIRMATION REQUIRED:**
+    After deployment, AWS SNS will send a confirmation email to each address.
+    **You MUST click the confirmation link** in each email to activate notifications.
+
+    Until confirmed:
+    - Subscription status: PendingConfirmation
+    - Alarms will fire but notifications will NOT be delivered
+    - No alerts will reach your team during incidents
+
+    **Action Required:** Check spam folders and confirm all subscription emails immediately after deployment.
+
+    **Vanta Compliance Requirements:**
+    When configured, creates CloudWatch alarms for:
+    - Load balancer unhealthy host count monitoring
+    - Load balancer latency monitoring
+    - Load balancer server errors (5xx) monitoring
+    - Server CPU utilization monitoring
+
+    **Example:**
+    ```
+    alarm_emails = ["ops-team@example.com", "on-call@example.com"]
+    ```
+
+    ⚠️  **FUTURE REQUIREMENT:** In v6.0.0, at least one email address will be required.
+    See UPGRADE-6.0.md for migration details.
+  EOF
+  type        = list(string)
+  default     = []
+}
+
+variable "alarm_topic_arns" {
+  description = <<-EOF
+    List of existing SNS topic ARNs to send ALB alarms to.
+    Use this for advanced integrations like PagerDuty, Slack, OpsGenie, etc.
+
+    These topics will receive notifications in addition to any configured alarm_emails.
+
+    **Example:**
+    ```
+    alarm_topic_arns = [
+      "arn:aws:sns:us-east-1:123456789012:pagerduty-critical",
+      "arn:aws:sns:us-east-1:123456789012:slack-alerts"
+    ]
+    ```
+  EOF
+  type        = list(string)
+  default     = []
+}
+
+variable "alarm_unhealthy_host_threshold" {
+  description = <<-EOF
+    Number of unhealthy hosts that triggers an alarm.
+
+    Uses GreaterThanThreshold comparison, so:
+    - 0 = Alert when ANY host becomes unhealthy (count > 0)
+    - 1 = Alert when 2+ hosts are unhealthy (count > 1) - default
+    - 2 = Alert when 3+ hosts are unhealthy (count > 2)
+
+    **Recommended:** Set to 0 for immediate alerting in production, or 1 to allow
+    for graceful deployments where one host may briefly be unhealthy during updates.
+  EOF
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.alarm_unhealthy_host_threshold >= 0
+    error_message = "Unhealthy host threshold must be >= 0"
+  }
+}
+
+variable "alarm_target_response_time_threshold" {
+  description = <<-EOF
+    Target response time threshold in seconds that triggers a latency alarm.
+
+    If not specified, defaults to 80% of alb_idle_timeout to alert before
+    connections start timing out.
+
+    Example: With default alb_idle_timeout=60s, this will default to 48s.
+
+    You can override this for more aggressive monitoring:
+    - API services: 0.5 - 1.0 seconds
+    - Web applications: 1.0 - 2.0 seconds
+    - Backend services: 2.0 - 5.0 seconds
+  EOF
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.alarm_target_response_time_threshold == null || (var.alarm_target_response_time_threshold > 0 && var.alarm_target_response_time_threshold <= 3600)
+    error_message = <<-EOF
+      Response time threshold must be between 0 and 3600 seconds (1 hour).
+      Upper limit is generous to support edge cases like file uploads, batch processing,
+      and streaming, while still catching obvious configuration errors.
+    EOF
+  }
+}
+
+variable "alarm_success_rate_threshold" {
+  description = <<-EOF
+    Minimum success rate (percentage) before triggering an alarm.
+
+    Success rate = (non-5xx responses) / (total responses) * 100
+
+    This is smarter than a raw error count because it scales with traffic volume.
+    A 1% error rate means the same thing whether you have 100 or 100,000 requests.
+
+    **Default:** 99.0 (alerts when error rate exceeds 1%)
+
+    **Examples:**
+    - 99.9 = Alert when more than 0.1% of requests fail (very strict SLO)
+    - 99.0 = Alert when more than 1% of requests fail (recommended)
+    - 95.0 = Alert when more than 5% of requests fail (lenient)
+
+    **Note:** Alarms won't trigger during periods with zero traffic.
+  EOF
+  type        = number
+  default     = 99.0
+
+  validation {
+    condition     = var.alarm_success_rate_threshold >= 0 && var.alarm_success_rate_threshold <= 100
+    error_message = "Success rate threshold must be between 0 and 100 (percentage)"
+  }
+}
+
+variable "alarm_success_rate_period" {
+  description = <<-EOF
+    Time period (in seconds) over which to calculate the success rate.
+
+    Longer periods provide more statistical stability, especially important
+    for low-traffic sites where individual errors can skew short-term rates.
+
+    **Default:** 300 seconds (5 minutes)
+
+    **Recommendations by traffic volume:**
+    - Very low traffic (< 1 req/min):   3600s (1 hour) for statistical significance
+    - Low traffic (1-10 req/min):       900s (15 min)
+    - Medium traffic (10-100 req/min):  300s (5 min) - default
+    - High traffic (> 100 req/min):     60s (1 min) for faster detection
+
+    **Detection time:** With evaluation_periods=2:
+    - 3600s (1 hour) = 2 hour detection time
+    - 900s (15 min) = 30 minute detection time
+    - 300s (5 min) = 10 minute detection time
+    - 60s (1 min) = 2 minute detection time
+
+    **Example for low-traffic site:**
+    ```
+    alarm_success_rate_period = 3600  # 1 hour window
+    alarm_success_rate_threshold = 99.0
+    ```
+    With 10 requests/hour, allows 1 error before alarming.
+  EOF
+  type        = number
+  default     = 300 # 5 minutes
+
+  validation {
+    condition     = contains([60, 300, 900, 3600], var.alarm_success_rate_period)
+    error_message = "Period must be 60 (1 min), 300 (5 min), 900 (15 min), or 3600 (1 hour)"
+  }
+}
+
+variable "alarm_cpu_utilization_threshold" {
+  description = <<-EOF
+    CPU utilization percentage that triggers an alarm.
+
+    This alarm detects when autoscaling FAILS to keep up with demand, which may indicate:
+    - ASG reached max_size (cannot scale further)
+    - New instances failing to provision
+    - New instances not becoming healthy
+    - Infrastructure capacity/quota issues
+
+    **Automatic calculation:**
+    If not specified, defaults to autoscaling_target_cpu_load + 30%.
+    This provides a buffer for autoscaling to respond before alarming.
+
+    **Example automatic thresholds:**
+    - autoscaling_target_cpu_load = 60%: alarm at 90%
+    - autoscaling_target_cpu_load = 70%: alarm at 99% (capped)
+
+    **How it works:**
+    When CPU exceeds target (60% default), ASG launches new instances (~5-10 min).
+    If CPU stays high for 10 minutes (period × evaluation_periods), autoscaling has failed - time to alert!
+
+    **Override for custom thresholds:**
+    ```
+    alarm_cpu_utilization_threshold = 85  # Explicit threshold
+    ```
+
+    **Note:** This is a Vanta compliance requirement (Server CPU monitored).
+  EOF
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.alarm_cpu_utilization_threshold == null || (var.alarm_cpu_utilization_threshold > 0 && var.alarm_cpu_utilization_threshold < 100)
+    error_message = <<-EOF
+      CPU utilization threshold must be between 0 and 99 (percentage).
+      Threshold of 100 would never trigger since the alarm uses GreaterThanThreshold comparison.
+    EOF
+  }
+}
+
+variable "alarm_evaluation_periods" {
+  description = <<-EOF
+    Number of periods over which to compare the metric to the threshold.
+
+    With 1-minute periods, setting this to 2 means the alarm must breach
+    for 2 consecutive minutes before triggering.
+  EOF
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.alarm_evaluation_periods >= 1
+    error_message = "Evaluation periods must be at least 1"
+  }
+}

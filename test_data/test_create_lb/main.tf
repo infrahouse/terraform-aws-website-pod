@@ -37,4 +37,5 @@ module "lb" {
   vanta_user_data_stored       = "Test data"
   alb_access_log_enabled       = true
   alb_access_log_force_destroy = true
+  alarm_emails                 = var.alarm_emails
 }
