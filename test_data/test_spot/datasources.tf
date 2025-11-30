@@ -71,7 +71,3 @@ data "aws_iam_policy_document" "webserver_permissions" {
     resources = ["*"]
   }
 }
-
-data "aws_route53_zone" "website" {
-  name = var.dns_zone
-}
