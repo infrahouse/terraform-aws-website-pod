@@ -16,5 +16,6 @@ variable "internet_gateway_id" {}
 variable "instance_role_name" { default = null }
 
 variable "alarm_emails" {
-  type = list(string)
+  type    = list(string)
+  default = ["devnull@infrahouse.com"]
 }
