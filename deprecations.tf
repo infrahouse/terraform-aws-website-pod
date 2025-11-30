@@ -158,3 +158,82 @@ check "healthcheck_timeout_less_than_interval" {
     EOF
   }
 }
+
+# Vanta Compliance: Recommend configuring CloudWatch alarms
+check "vanta_alarms_recommended" {
+  assert {
+    condition     = length(var.alarm_emails) > 0 || length(var.alarm_topic_arns) > 0
+    error_message = <<-EOF
+      ╔════════════════════════════════════════════════════════════════════════╗
+      ║                 ⚠️  VANTA COMPLIANCE RECOMMENDATION ⚠️                 ║
+      ╚════════════════════════════════════════════════════════════════════════╝
+
+      No CloudWatch alarm notifications are configured for this ALB.
+
+      Vanta Compliance Requirements:
+      Vanta requires monitoring for:
+      - Load balancer unhealthy host count
+      - Load balancer latency
+      - Load balancer server errors (5xx)
+      - Server CPU utilization
+
+      To enable alarms, configure one of:
+
+      1. Email notifications:
+         alarm_emails = ["ops-team@example.com"]
+
+      2. Existing SNS topics:
+         alarm_topic_arns = ["arn:aws:sns:us-east-1:123456789012:alerts"]
+
+      Timeline:
+      - v5.12.0 (current): Alarms are OPTIONAL, warning shown
+      - v6.0.0 (Q2 2026): At least one alarm_emails address will be REQUIRED
+
+      This is a warning only - your deployment will proceed, but Vanta
+      compliance checks may fail.
+
+      Documentation:
+      - See https://www.vanta.com/products/trust-center
+      - See UPGRADE-6.0.md for migration details
+
+      ════════════════════════════════════════════════════════════════════════
+    EOF
+  }
+}
+
+# Vanta Compliance: Validate CPU alarm threshold is sane
+check "cpu_alarm_threshold_sane" {
+  assert {
+    condition     = local.alarm_cpu_threshold > var.autoscaling_target_cpu_load
+    error_message = <<-EOF
+      ╔════════════════════════════════════════════════════════════════════════╗
+      ║                  ⚠️  CPU ALARM CONFIGURATION ERROR ⚠️                  ║
+      ╚════════════════════════════════════════════════════════════════════════╝
+
+      CPU alarm threshold (${local.alarm_cpu_threshold}%) must be greater than
+      autoscaling target (${var.autoscaling_target_cpu_load}%).
+
+      Current configuration:
+      - autoscaling_target_cpu_load:     ${var.autoscaling_target_cpu_load}%
+      - alarm_cpu_utilization_threshold: ${coalesce(var.alarm_cpu_utilization_threshold, "auto (${local.alarm_cpu_threshold}%)")}
+
+      Problem:
+      The alarm should trigger AFTER autoscaling attempts to scale up.
+      If alarm threshold ≤ autoscaling target, the alarm will fire immediately
+      without giving autoscaling a chance to respond.
+
+      How autoscaling works:
+      1. CPU exceeds target (${var.autoscaling_target_cpu_load}%) → ASG launches new instances (~5-10 min)
+      2. If CPU stays high for 10 minutes → alarm fires (something is wrong!)
+
+      Solution:
+      # Let it auto-calculate (recommended)
+      # alarm_cpu_utilization_threshold defaults to autoscaling_target_cpu_load + 30%
+
+      # OR manually set it higher:
+      alarm_cpu_utilization_threshold = ${var.autoscaling_target_cpu_load + 30}
+
+      ════════════════════════════════════════════════════════════════════════
+    EOF
+  }
+}

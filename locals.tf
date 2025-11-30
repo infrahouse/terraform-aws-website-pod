@@ -89,4 +89,30 @@ locals {
     var.attach_target_group_to_asg,
     var.attach_tagret_group_to_asg,
   )
+
+  # Vanta Compliance: CloudWatch Alarms
+  # Determine if alarms should be created
+  alarms_enabled = length(var.alarm_emails) > 0 || length(var.alarm_topic_arns) > 0
+
+  # Calculate response time threshold: default to 80% of idle timeout
+  alarm_target_response_time = coalesce(
+    var.alarm_target_response_time_threshold,
+    var.alb_idle_timeout * 0.8
+  )
+
+  # Calculate CPU threshold: default to autoscaling target + 30%
+  # Cap at 100% to avoid invalid thresholds
+  alarm_cpu_threshold = min(
+    coalesce(
+      var.alarm_cpu_utilization_threshold,
+      var.autoscaling_target_cpu_load + 30
+    ),
+    100
+  )
+
+  # SNS topic ARNs to send alarms to
+  alarm_sns_topics = concat(
+    length(var.alarm_emails) > 0 ? [aws_sns_topic.alarms[0].arn] : [],
+    var.alarm_topic_arns
+  )
 }
