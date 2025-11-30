@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.11.0] - 2025-11-30
+
+### Bug Fixes
+
+- Ensure release commits follow Conventional Commits format
+- Reformat README examples for reliable bumpversion
+
 ## [5.10.0] - 2025-11-22
 
 ### Features
