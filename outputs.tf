@@ -112,7 +112,7 @@ output "backend_security_group_id" {
 
 # Vanta Compliance: CloudWatch Alarms
 output "alarm_sns_topic_arn" {
-  description = "ARN of the SNS topic for ALB CloudWatch alarms (if created)"
+  description = "ARN of the SNS topic for ALB CloudWatch alarms (if created). IMPORTANT: Email subscribers must confirm their subscription via the AWS confirmation email to receive notifications."
   value       = length(aws_sns_topic.alarms) > 0 ? aws_sns_topic.alarms[0].arn : null
 }
 

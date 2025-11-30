@@ -542,7 +542,17 @@ variable "sns_topic_alarm_arn" {
 variable "alarm_emails" {
   description = <<-EOF
     List of email addresses to receive CloudWatch alarm notifications for ALB monitoring.
-    AWS will send confirmation emails that must be accepted.
+
+    ⚠️  **IMPORTANT - EMAIL CONFIRMATION REQUIRED:**
+    After deployment, AWS SNS will send a confirmation email to each address.
+    **You MUST click the confirmation link** in each email to activate notifications.
+
+    Until confirmed:
+    - Subscription status: PendingConfirmation
+    - Alarms will fire but notifications will NOT be delivered
+    - No alerts will reach your team during incidents
+
+    **Action Required:** Check spam folders and confirm all subscription emails immediately after deployment.
 
     **Vanta Compliance Requirements:**
     When configured, creates CloudWatch alarms for:
@@ -586,11 +596,21 @@ variable "alarm_unhealthy_host_threshold" {
   description = <<-EOF
     Number of unhealthy hosts that triggers an alarm.
 
-    Recommended: Set to 1 for production environments to catch issues immediately.
-    For development/staging, you might set higher or disable alarms entirely.
+    Uses GreaterThanThreshold comparison, so:
+    - 0 = Alert when ANY host becomes unhealthy (count > 0)
+    - 1 = Alert when 2+ hosts are unhealthy (count > 1) - default
+    - 2 = Alert when 3+ hosts are unhealthy (count > 2)
+
+    **Recommended:** Set to 0 for immediate alerting in production, or 1 to allow
+    for graceful deployments where one host may briefly be unhealthy during updates.
   EOF
   type        = number
   default     = 1
+
+  validation {
+    condition     = var.alarm_unhealthy_host_threshold >= 0
+    error_message = "Unhealthy host threshold must be >= 0"
+  }
 }
 
 variable "alarm_target_response_time_threshold" {
@@ -609,6 +629,15 @@ variable "alarm_target_response_time_threshold" {
   EOF
   type        = number
   default     = null
+
+  validation {
+    condition     = var.alarm_target_response_time_threshold == null || (var.alarm_target_response_time_threshold > 0 && var.alarm_target_response_time_threshold <= 3600)
+    error_message = <<-EOF
+      Response time threshold must be between 0 and 3600 seconds (1 hour).
+      Upper limit is generous to support edge cases like file uploads, batch processing,
+      and streaming, while still catching obvious configuration errors.
+    EOF
+  }
 }
 
 variable "alarm_success_rate_threshold" {
@@ -691,7 +720,7 @@ variable "alarm_cpu_utilization_threshold" {
 
     **Example automatic thresholds:**
     - autoscaling_target_cpu_load = 60%: alarm at 90%
-    - autoscaling_target_cpu_load = 70%: alarm at 100%
+    - autoscaling_target_cpu_load = 70%: alarm at 99% (capped)
 
     **How it works:**
     When CPU exceeds target (60% default), ASG launches new instances (~5-10 min).
@@ -708,8 +737,11 @@ variable "alarm_cpu_utilization_threshold" {
   default     = null
 
   validation {
-    condition     = var.alarm_cpu_utilization_threshold == null || (var.alarm_cpu_utilization_threshold > 0 && var.alarm_cpu_utilization_threshold <= 100)
-    error_message = "CPU utilization threshold must be between 0 and 100 (percentage)"
+    condition     = var.alarm_cpu_utilization_threshold == null || (var.alarm_cpu_utilization_threshold > 0 && var.alarm_cpu_utilization_threshold < 100)
+    error_message = <<-EOF
+      CPU utilization threshold must be between 0 and 99 (percentage).
+      Threshold of 100 would never trigger since the alarm uses GreaterThanThreshold comparison.
+    EOF
   }
 }
 

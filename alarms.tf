@@ -98,10 +98,10 @@ resource "aws_cloudwatch_metric_alarm" "low_success_rate" {
 
   # Calculate success rate using metric math
   # Success rate = 100 * (1 - (target_5xx + elb_5xx) / request_count)
-  # FILL() handles empty series: if no requests, avoids division by zero; if no errors, treats as 0
+  # FILL() handles empty series: if no requests, returns 1 to avoid division by zero; if no errors, treats as 0
   metric_query {
     id          = "success_rate"
-    expression  = "100 * (1 - (FILL(target_5xx, 0) + FILL(elb_5xx, 0)) / FILL(request_count + 1, 1))"
+    expression  = "100 * (1 - (FILL(target_5xx, 0) + FILL(elb_5xx, 0)) / FILL(request_count, 1))"
     label       = "Success Rate (%)"
     return_data = true
   }

@@ -101,13 +101,14 @@ locals {
   )
 
   # Calculate CPU threshold: default to autoscaling target + 30%
-  # Cap at 100% to avoid invalid thresholds
+  # Cap at 99% instead of 100% because the alarm uses GreaterThanThreshold (>).
+  # A threshold of 100 would mean "alert when CPU > 100%" which is impossible.
   alarm_cpu_threshold = min(
     coalesce(
       var.alarm_cpu_utilization_threshold,
       var.autoscaling_target_cpu_load + 30
     ),
-    100
+    99
   )
 
   # SNS topic ARNs to send alarms to
