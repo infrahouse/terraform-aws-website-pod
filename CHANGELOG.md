@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.12.0] - 2025-11-30
+
+### Bug Fixes
+
+- Add default value for alarm_emails in test_create_lb test module
+- Critical alarm threshold bugs and add validation to prevent misconfigurations
+
+### Documentation
+
+- Prepare implementation plan for vanta alerts
+- Update v5.12.0 plan with accurate examples and mark Phase 4 complete
+
+### Features
+
+- Add optional CloudWatch alarms for Vanta compliance
+- Add optional CloudWatch alarms for Vanta compliance
+
 ## [5.11.0] - 2025-11-30
 
 ### Bug Fixes
