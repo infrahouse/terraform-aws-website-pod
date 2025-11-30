@@ -19,7 +19,7 @@ module "lb" {
   asg_name                     = var.asg_name
   asg_min_size                 = 3
   internet_gateway_id          = var.internet_gateway_id
-  zone_id                      = data.aws_route53_zone.website.zone_id
+  zone_id                      = var.zone_id
   dns_a_records                = var.dns_a_records
   key_pair_name                = aws_key_pair.test.key_name
   userdata                     = data.cloudinit_config.webserver_init.rendered

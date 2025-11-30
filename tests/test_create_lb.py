@@ -35,11 +35,12 @@ def test_lb(
     keep_after,
     aws_region,
     test_role_arn,
-    test_zone_name,
+    subzone,
 ):
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
     internet_gateway_id = service_network["internet_gateway_id"]["value"]
     lb_subnet_ids = service_network[lb_subnets]["value"]
+    zone_id = subzone["subzone_id"]["value"]
 
     terraform_dir = "test_data/test_create_lb"
 
@@ -84,7 +85,7 @@ def test_lb(
             dedent(
                 f"""
                 region          = "{aws_region}"
-                dns_zone        = "{test_zone_name}"
+                zone_id         = "{zone_id}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
                 tags = {{
                     Name: "{instance_name}"
@@ -111,6 +112,9 @@ def test_lb(
         json_output=True,
     ) as tf_output:
         print(json.dumps(tf_output, indent=4))
+
+        # Get the full zone name from terraform output (e.g., abcd.ci-cd.infrahouse.com)
+        test_zone_name = tf_output["test_zone_name"]["value"]
 
         response = route53_client.list_hosted_zones_by_name(DNSName=test_zone_name)
         assert len(response["HostedZones"]) > 0, "Zone %s is not hosted by AWS: %s" % (

@@ -98,6 +98,130 @@ module "website" {
 This creates separate security group rules for each CIDR block, allowing fine-grained control over
 who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`) and HTTPS (port 443).
 
+### ALB Access Logging (Security Best Practice)
+
+**Recommended:** Enable ALB access logging for security investigations, incident response, debugging, and compliance requirements.
+
+```hcl
+module "website" {
+  # ... other configuration ...
+
+  # Enable access logging (recommended for production)
+  alb_access_log_enabled = true
+}
+```
+
+When enabled, the module creates an encrypted, versioned S3 bucket that stores detailed ALB access logs. These logs are essential for:
+- **Security:** Track unauthorized access attempts and identify suspicious traffic patterns
+- **Compliance:** Meet SOC2, HIPAA, PCI-DSS, and ISO 27001 requirements
+- **Operations:** Debug production issues and analyze traffic patterns
+- **AWS Best Practices:** Aligns with AWS Well-Architected Framework security pillar
+
+**Cost Impact:** Minimal (~$4/year for moderate traffic). Storage costs are negligible compared to security and compliance benefits.
+
+**Note:** Starting in v6.0.0, access logging will be enabled by default. See `variables.tf` for details.
+
+## Deprecated Variables
+
+The following variables contain typos and are deprecated. They will be removed in **v6.0.0**.
+
+| Deprecated Variable (v5.x)          | Correct Variable (Use This)          | Status                    |
+|-------------------------------------|--------------------------------------|---------------------------|
+| `alb_healthcheck_uhealthy_threshold`| `alb_healthcheck_unhealthy_threshold`| ⚠️  Deprecated in v5.11.0 |
+| `attach_tagret_group_to_asg`        | `attach_target_group_to_asg`         | ⚠️  Deprecated in v5.11.0 |
+
+### Migration Instructions
+
+If you're using the deprecated variables, update your code before upgrading to v6.0.0:
+
+**Before:**
+```hcl
+module "website" {
+  source  = "infrahouse/website-pod/aws"
+  version = "~> 5.0"
+
+  alb_healthcheck_uhealthy_threshold = 3  # Typo: "uhealthy"
+  attach_tagret_group_to_asg         = true  # Typo: "tagret"
+}
+```
+
+**After:**
+```hcl
+module "website" {
+  source  = "infrahouse/website-pod/aws"
+  version = "~> 5.11"  # or "~> 6.0" when available
+
+  alb_healthcheck_unhealthy_threshold = 3  # Correct spelling
+  attach_target_group_to_asg          = true  # Correct spelling
+}
+```
+
+For detailed migration guidance, see [UPGRADE-6.0.md](UPGRADE-6.0.md).
+
+## Development and Testing
+
+### Running Tests
+
+The module includes a comprehensive test suite. Tests use pytest and deploy real infrastructure to AWS.
+
+#### Run all tests:
+```bash
+make test
+```
+
+#### Run tests with AWS credentials:
+```bash
+make test-keep  # Keeps infrastructure for debugging
+make test-clean # Destroys infrastructure after test
+```
+
+### Troubleshooting Test Failures
+
+If a test fails in CI, you can run the specific failed test locally:
+
+#### Run a specific test:
+```bash
+# Run a specific test file and function
+make test-keep TEST_PATH=tests/test_asg_name.py::test_lb TEST_FILTER=
+
+# Run all tests in a file
+make test-keep TEST_PATH=tests/test_asg_name.py TEST_FILTER=
+```
+
+#### Available test variables:
+- `TEST_PATH` - Path to test file or specific test (default: `tests/test_create_lb.py`)
+- `TEST_FILTER` - pytest `-k` filter expression (default: `"internet-facing and aws-6"`)
+- `TEST_REGION` - AWS region for testing (default: `"us-west-2"`)
+- `TEST_ROLE` - IAM role ARN for testing (default: module-specific test role)
+
+#### Examples:
+
+```bash
+# Run with default filter
+make test-keep
+
+# Run specific test without filter
+make test-keep TEST_PATH=tests/test_spot.py::test_lb TEST_FILTER=
+
+# Run with custom filter
+make test-keep TEST_FILTER="aws-5"
+
+# Run specific test and keep resources for debugging
+make test-keep TEST_PATH=tests/test_asg_name.py::test_lb TEST_FILTER=
+
+# Run and clean up afterward
+make test-clean TEST_PATH=tests/test_asg_name.py::test_lb TEST_FILTER=
+```
+
+### Other Development Commands
+
+```bash
+make bootstrap  # Install dependencies and git hooks
+make fmt        # Format Terraform and Python code
+make lint       # Check code style
+make validate   # Validate Terraform configuration
+```
+
 <!-- BEGIN_TF_DOCS -->
 
 ## Requirements
@@ -112,9 +236,9 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.11, < 7.0 |
-| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | >= 5.11, < 7.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.23.0 |
+| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | 6.23.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
 ## Modules
 
@@ -145,6 +269,8 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 | [aws_s3_bucket.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket_policy.access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.public_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_server_side_encryption_configuration.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
+| [aws_s3_bucket_versioning.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
 | [aws_security_group.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_vpc_security_group_egress_rule.alb_outgoing](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_egress_rule) | resource |
@@ -173,7 +299,7 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_alb_access_log_enabled"></a> [alb\_access\_log\_enabled](#input\_alb\_access\_log\_enabled) | Whether to maintain the access log. | `bool` | `false` | no |
+| <a name="input_alb_access_log_enabled"></a> [alb\_access\_log\_enabled](#input\_alb\_access\_log\_enabled) | Whether to enable ALB access logging to S3.<br/><br/>**Security Best Practice:** Enabling access logs is recommended for:<br/>- Security investigations and incident response<br/>- Debugging production issues<br/>- Compliance requirements (SOC2, HIPAA, PCI-DSS)<br/>- AWS Well-Architected Framework best practices<br/><br/>When enabled, creates an encrypted, versioned S3 bucket for access logs.<br/>Storage costs are minimal compared to security and operational benefits.<br/><br/>**Note:** In v6.0.0, this will default to `true` (enabled by default).<br/>See UPGRADE-6.0.md for details. | `bool` | `false` | no |
 | <a name="input_alb_access_log_force_destroy"></a> [alb\_access\_log\_force\_destroy](#input\_alb\_access\_log\_force\_destroy) | Destroy S3 bucket with access logs even if non-empty | `bool` | `false` | no |
 | <a name="input_alb_healthcheck_enabled"></a> [alb\_healthcheck\_enabled](#input\_alb\_healthcheck\_enabled) | Whether health checks are enabled. | `bool` | `true` | no |
 | <a name="input_alb_healthcheck_healthy_threshold"></a> [alb\_healthcheck\_healthy\_threshold](#input\_alb\_healthcheck\_healthy\_threshold) | Number of times the host have to pass the test to be considered healthy | `number` | `2` | no |
@@ -183,15 +309,16 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 | <a name="input_alb_healthcheck_protocol"></a> [alb\_healthcheck\_protocol](#input\_alb\_healthcheck\_protocol) | Protocol to use with the webserver that the elb will check to determine whether the instance is healthy or not | `string` | `"HTTP"` | no |
 | <a name="input_alb_healthcheck_response_code_matcher"></a> [alb\_healthcheck\_response\_code\_matcher](#input\_alb\_healthcheck\_response\_code\_matcher) | Range of http return codes that can match | `string` | `"200-299"` | no |
 | <a name="input_alb_healthcheck_timeout"></a> [alb\_healthcheck\_timeout](#input\_alb\_healthcheck\_timeout) | Number of seconds to timeout a check | `number` | `4` | no |
-| <a name="input_alb_healthcheck_uhealthy_threshold"></a> [alb\_healthcheck\_uhealthy\_threshold](#input\_alb\_healthcheck\_uhealthy\_threshold) | Number of times the host have to pass the test to be considered UNhealthy | `number` | `2` | no |
+| <a name="input_alb_healthcheck_uhealthy_threshold"></a> [alb\_healthcheck\_uhealthy\_threshold](#input\_alb\_healthcheck\_uhealthy\_threshold) | ⚠️  DEPRECATED - Contains typo, use 'alb\_healthcheck\_unhealthy\_threshold' instead.<br/>This variable will be removed in v6.0.0. See deprecations.tf for details.<br/>Number of times the host must fail the test to be considered unhealthy. | `number` | `null` | no |
+| <a name="input_alb_healthcheck_unhealthy_threshold"></a> [alb\_healthcheck\_unhealthy\_threshold](#input\_alb\_healthcheck\_unhealthy\_threshold) | Number of consecutive health check failures required before considering the target unhealthy | `number` | `2` | no |
 | <a name="input_alb_idle_timeout"></a> [alb\_idle\_timeout](#input\_alb\_idle\_timeout) | The time in seconds that the connection is allowed to be idle. | `number` | `60` | no |
 | <a name="input_alb_ingress_cidr_blocks"></a> [alb\_ingress\_cidr\_blocks](#input\_alb\_ingress\_cidr\_blocks) | List of CIDR blocks allowed to access the ALB. Defaults to allow all (0.0.0.0/0). | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
 | <a name="input_alb_listener_port"></a> [alb\_listener\_port](#input\_alb\_listener\_port) | TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS. | `number` | `80` | no |
 | <a name="input_alb_name_prefix"></a> [alb\_name\_prefix](#input\_alb\_name\_prefix) | Name prefix for the load balancer | `string` | `"web"` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | Image for EC2 instances | `string` | n/a | yes |
 | <a name="input_asg_lifecycle_hook_heartbeat_timeout"></a> [asg\_lifecycle\_hook\_heartbeat\_timeout](#input\_asg\_lifecycle\_hook\_heartbeat\_timeout) | How much time in seconds to wait until the hook is completed before proceeding with the default action. | `number` | `3600` | no |
-| <a name="input_asg_lifecycle_hook_initial"></a> [asg\_lifecycle\_hook\_initial](#input\_asg\_lifecycle\_hook\_initial) | Create a LAUNCHING initial lifecycle hook with this name. | `string` | `null` | no |
-| <a name="input_asg_lifecycle_hook_launching"></a> [asg\_lifecycle\_hook\_launching](#input\_asg\_lifecycle\_hook\_launching) | Create a LAUNCHING lifecycle hook with this name. | `string` | `null` | no |
+| <a name="input_asg_lifecycle_hook_initial"></a> [asg\_lifecycle\_hook\_initial](#input\_asg\_lifecycle\_hook\_initial) | Name for an initial LAUNCHING lifecycle hook configured via the initial\_lifecycle\_hook<br/>block in the ASG. This hook is evaluated during ASG creation.<br/>Only one initial hook is allowed per ASG.<br/><br/>Use this for simple lifecycle hooks that don't require additional configuration. | `string` | `null` | no |
+| <a name="input_asg_lifecycle_hook_launching"></a> [asg\_lifecycle\_hook\_launching](#input\_asg\_lifecycle\_hook\_launching) | Name for a LAUNCHING lifecycle hook configured via a separate<br/>aws\_autoscaling\_lifecycle\_hook resource. This allows for more complex configurations<br/>and can be created after the ASG exists.<br/><br/>Use this if you need to attach SNS notifications or additional settings to the lifecycle hook. | `string` | `null` | no |
 | <a name="input_asg_lifecycle_hook_launching_default_result"></a> [asg\_lifecycle\_hook\_launching\_default\_result](#input\_asg\_lifecycle\_hook\_launching\_default\_result) | Default result for launching lifecycle hook. | `string` | `"ABANDON"` | no |
 | <a name="input_asg_lifecycle_hook_terminating"></a> [asg\_lifecycle\_hook\_terminating](#input\_asg\_lifecycle\_hook\_terminating) | Create a TERMINATING lifecycle hook with this name. | `string` | `null` | no |
 | <a name="input_asg_lifecycle_hook_terminating_default_result"></a> [asg\_lifecycle\_hook\_terminating\_default\_result](#input\_asg\_lifecycle\_hook\_terminating\_default\_result) | Default result for terminating lifecycle hook. | `string` | `"ABANDON"` | no |
@@ -203,7 +330,8 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 | <a name="input_asg_name"></a> [asg\_name](#input\_asg\_name) | Autoscaling group name, if provided. | `string` | `null` | no |
 | <a name="input_asg_scale_in_protected_instances"></a> [asg\_scale\_in\_protected\_instances](#input\_asg\_scale\_in\_protected\_instances) | Behavior when encountering instances protected from scale in are found. Available behaviors are Refresh, Ignore, and Wait. | `string` | `"Ignore"` | no |
 | <a name="input_assume_dns"></a> [assume\_dns](#input\_assume\_dns) | If True, create DNS records provided by var.dns\_a\_records. | `bool` | `true` | no |
-| <a name="input_attach_tagret_group_to_asg"></a> [attach\_tagret\_group\_to\_asg](#input\_attach\_tagret\_group\_to\_asg) | By default we want to register all ASG instances in the target group. However ECS registers targets itself. Disable it if using website-pod for ECS. | `bool` | `true` | no |
+| <a name="input_attach_tagret_group_to_asg"></a> [attach\_tagret\_group\_to\_asg](#input\_attach\_tagret\_group\_to\_asg) | ⚠️  DEPRECATED - Contains typo, use 'attach\_target\_group\_to\_asg' instead.<br/>This variable will be removed in v6.0.0. See deprecations.tf for details.<br/>Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself. | `bool` | `null` | no |
+| <a name="input_attach_target_group_to_asg"></a> [attach\_target\_group\_to\_asg](#input\_attach\_target\_group\_to\_asg) | Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself. | `bool` | `true` | no |
 | <a name="input_autoscaling_target_cpu_load"></a> [autoscaling\_target\_cpu\_load](#input\_autoscaling\_target\_cpu\_load) | Target CPU load for autoscaling | `number` | `60` | no |
 | <a name="input_backend_subnets"></a> [backend\_subnets](#input\_backend\_subnets) | Subnet ids where EC2 instances should be present | `list(string)` | n/a | yes |
 | <a name="input_certificate_issuers"></a> [certificate\_issuers](#input\_certificate\_issuers) | List of certificate authority domains allowed to issue certificates for this domain (e.g., ["amazon.com", "letsencrypt.org"]). The module will format these as CAA records. | `list(string)` | <pre>[<br/>  "amazon.com"<br/>]</pre> | no |
@@ -213,7 +341,7 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 | <a name="input_extra_security_groups_backend"></a> [extra\_security\_groups\_backend](#input\_extra\_security\_groups\_backend) | A list of security group ids to assign to backend instances | `list(string)` | `[]` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | ASG will wait up to this number of seconds for instance to become healthy | `number` | `600` | no |
 | <a name="input_health_check_type"></a> [health\_check\_type](#input\_health\_check\_type) | Type of healthcheck the ASG uses. Can be EC2 or ELB. | `string` | `"ELB"` | no |
-| <a name="input_instance_profile_permissions"></a> [instance\_profile\_permissions](#input\_instance\_profile\_permissions) | A JSON with a permissions policy document. The policy will be attached to the instance profile. | `string` | `null` | no |
+| <a name="input_instance_profile_permissions"></a> [instance\_profile\_permissions](#input\_instance\_profile\_permissions) | A JSON policy document to attach to the instance profile.<br/>This should be the output of an aws\_iam\_policy\_document data source.<br/><br/>Example:<br/>  instance\_profile\_permissions = data.aws\_iam\_policy\_document.my\_policy.json<br/><br/>If not specified, defaults to a minimal policy allowing sts:GetCallerIdentity. | `string` | `null` | no |
 | <a name="input_instance_role_name"></a> [instance\_role\_name](#input\_instance\_role\_name) | If specified, the instance profile role will have this name. Otherwise, the role name will be generated. | `string` | `null` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instances type | `string` | `"t3.micro"` | no |
 | <a name="input_internet_gateway_id"></a> [internet\_gateway\_id](#input\_internet\_gateway\_id) | Not used, but AWS Internet Gateway must be present. Ensure by passing its id. | `string` | n/a | yes |
@@ -229,6 +357,7 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 | <a name="input_stickiness_enabled"></a> [stickiness\_enabled](#input\_stickiness\_enabled) | If true, enable stickiness on the target group ensuring a clients is forwarded to the same target. | `bool` | `true` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | Subnet ids where load balancer should be present | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to resources creatded by the module. | `map(string)` | `{}` | no |
+| <a name="input_target_group_deregistration_delay"></a> [target\_group\_deregistration\_delay](#input\_target\_group\_deregistration\_delay) | Time in seconds for ALB to wait before deregistering a target.<br/>During this time, the target continues to receive existing connections<br/>but no new connections. This allows in-flight requests to complete.<br/><br/>Common use cases:<br/>- Reduce for faster deployments (e.g., 30s for stateless apps)<br/>- Increase for long-running requests (e.g., 600s for file uploads)<br/><br/>Valid range: 0-3600 seconds. AWS default is 300 seconds. | `number` | `300` | no |
 | <a name="input_target_group_port"></a> [target\_group\_port](#input\_target\_group\_port) | TCP port that a target listens to to serve requests from the load balancer. | `number` | `80` | no |
 | <a name="input_target_group_type"></a> [target\_group\_type](#input\_target\_group\_type) | Target group type: instance, ip, alb. Default is instance. | `string` | `"instance"` | no |
 | <a name="input_upstream_module"></a> [upstream\_module](#input\_upstream\_module) | Module that called this module. | `string` | `null` | no |
@@ -248,9 +377,11 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 | Name | Description |
 |------|-------------|
 | <a name="output_acm_certificate_arn"></a> [acm\_certificate\_arn](#output\_acm\_certificate\_arn) | ARN of the ACM certificate used by the load balancer |
+| <a name="output_alb_security_group_id"></a> [alb\_security\_group\_id](#output\_alb\_security\_group\_id) | ID of the ALB security group |
 | <a name="output_asg_arn"></a> [asg\_arn](#output\_asg\_arn) | ARN of the created autoscaling group |
 | <a name="output_asg_name"></a> [asg\_name](#output\_asg\_name) | Name of the created autoscaling group |
 | <a name="output_backend_security_group"></a> [backend\_security\_group](#output\_backend\_security\_group) | Map with security group id and rules |
+| <a name="output_backend_security_group_id"></a> [backend\_security\_group\_id](#output\_backend\_security\_group\_id) | ID of the backend instances security group |
 | <a name="output_dns_name"></a> [dns\_name](#output\_dns\_name) | DNS name of the load balancer. |
 | <a name="output_instance_profile_name"></a> [instance\_profile\_name](#output\_instance\_profile\_name) | EC2 instance profile name. |
 | <a name="output_instance_role_arn"></a> [instance\_role\_arn](#output\_instance\_role\_arn) | ARN of the instance role. |

@@ -10,7 +10,7 @@ resource "aws_autoscaling_group" "website" {
   max_instance_lifetime     = var.max_instance_lifetime_days * 24 * 3600
   health_check_grace_period = var.health_check_grace_period
   protect_from_scale_in     = var.protect_from_scale_in
-  target_group_arns         = var.target_group_type == "instance" && var.attach_tagret_group_to_asg ? [aws_alb_target_group.website.arn] : []
+  target_group_arns         = var.target_group_type == "instance" && local.attach_tg_to_asg ? [aws_alb_target_group.website.arn] : []
   instance_refresh {
     strategy = "Rolling"
     preferences {
@@ -94,7 +94,9 @@ resource "aws_launch_template" "website" {
   block_device_mappings {
     device_name = data.aws_ami.selected.root_device_name
     ebs {
-      # 2 * RAM size is reserved for swap
+      # Root volume size = user-specified size + swap space
+      # Swap space = 2 * RAM size (instance memory converted from MiB to GiB)
+      # This ensures adequate swap space for the instance type
       volume_size           = var.root_volume_size + 2 * data.aws_ec2_instance_type.selected.memory_size / 1024
       delete_on_termination = true
     }

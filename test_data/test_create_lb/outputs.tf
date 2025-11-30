@@ -21,3 +21,8 @@ output "instance_profile_name" {
 output "load_balancer_dns_name" {
   value = module.lb.load_balancer_dns_name
 }
+
+output "test_zone_name" {
+  description = "Full DNS zone name for testing (e.g., abcd.ci-cd.infrahouse.com)"
+  value       = trim(data.aws_route53_zone.test_zone.name, ".")
+}

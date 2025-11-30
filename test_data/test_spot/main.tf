@@ -16,7 +16,7 @@ module "lb" {
   asg_min_size                 = 2
   on_demand_base_capacity      = 1
   internet_gateway_id          = var.internet_gateway_id
-  zone_id                      = data.aws_route53_zone.website.zone_id
+  zone_id                      = var.zone_id
   dns_a_records                = var.dns_a_records
   key_pair_name                = aws_key_pair.test.key_name
   userdata                     = data.cloudinit_config.webserver_init.rendered
