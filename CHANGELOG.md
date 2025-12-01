@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.12.1] - 2025-12-01
+
+### Bug Fixes
+
+- Use ternary operator in validations for Terraform 1.12.2 compatibility
+
 ## [5.12.0] - 2025-11-30
 
 ### Bug Fixes
