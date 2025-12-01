@@ -631,7 +631,7 @@ variable "alarm_target_response_time_threshold" {
   default     = null
 
   validation {
-    condition     = var.alarm_target_response_time_threshold == null || (var.alarm_target_response_time_threshold > 0 && var.alarm_target_response_time_threshold <= 3600)
+    condition     = var.alarm_target_response_time_threshold == null ? true : (var.alarm_target_response_time_threshold > 0 && var.alarm_target_response_time_threshold <= 3600)
     error_message = <<-EOF
       Response time threshold must be between 0 and 3600 seconds (1 hour).
       Upper limit is generous to support edge cases like file uploads, batch processing,
@@ -737,7 +737,7 @@ variable "alarm_cpu_utilization_threshold" {
   default     = null
 
   validation {
-    condition     = var.alarm_cpu_utilization_threshold == null || (var.alarm_cpu_utilization_threshold > 0 && var.alarm_cpu_utilization_threshold < 100)
+    condition     = var.alarm_cpu_utilization_threshold == null ? true : (var.alarm_cpu_utilization_threshold > 0 && var.alarm_cpu_utilization_threshold < 100)
     error_message = <<-EOF
       CPU utilization threshold must be between 0 and 99 (percentage).
       Threshold of 100 would never trigger since the alarm uses GreaterThanThreshold comparison.
