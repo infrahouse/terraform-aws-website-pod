@@ -65,10 +65,6 @@ resource "aws_autoscaling_group" "website" {
 
     }
   }
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_launch_template" "website" {
@@ -119,11 +115,6 @@ resource "aws_launch_template" "website" {
       }
     )
   }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
 }
 
 resource "aws_autoscaling_lifecycle_hook" "launching" {

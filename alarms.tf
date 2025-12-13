@@ -2,14 +2,14 @@
 resource "aws_sns_topic" "alarms" {
   count = length(var.alarm_emails) > 0 ? 1 : 0
 
-  name              = "${var.service_name}-alb-alarms"
-  display_name      = "ALB Alarms for ${var.service_name}"
+  name              = "${aws_autoscaling_group.website.name}-alb-alarms"
+  display_name      = "ALB Alarms for ${aws_autoscaling_group.website.name}"
   kms_master_key_id = "alias/aws/sns" # Encrypt SNS topic
 
   tags = merge(
     local.default_module_tags,
     {
-      Name        = "${var.service_name}-alb-alarms"
+      Name        = "${aws_autoscaling_group.website.name}-alb-alarms"
       description = "CloudWatch alarms for ALB monitoring - Vanta compliance"
     }
   )
@@ -28,7 +28,7 @@ resource "aws_sns_topic_subscription" "alarm_emails" {
 resource "aws_cloudwatch_metric_alarm" "unhealthy_host_count" {
   count = local.alarms_enabled ? 1 : 0
 
-  alarm_name          = "${var.service_name}-unhealthy-hosts"
+  alarm_name          = "${aws_autoscaling_group.website.name}-unhealthy-hosts"
   alarm_description   = "Triggers when unhealthy host count exceeds ${var.alarm_unhealthy_host_threshold} (Vanta compliance)"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_evaluation_periods
@@ -50,7 +50,7 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_host_count" {
   tags = merge(
     local.default_module_tags,
     {
-      Name = "${var.service_name}-unhealthy-hosts"
+      Name = "${aws_autoscaling_group.website.name}-unhealthy-hosts"
     }
   )
 }
@@ -59,7 +59,7 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_host_count" {
 resource "aws_cloudwatch_metric_alarm" "target_response_time" {
   count = local.alarms_enabled ? 1 : 0
 
-  alarm_name          = "${var.service_name}-high-latency"
+  alarm_name          = "${aws_autoscaling_group.website.name}-high-latency"
   alarm_description   = "Triggers when target response time exceeds ${local.alarm_target_response_time}s (Vanta compliance)"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_evaluation_periods
@@ -80,7 +80,7 @@ resource "aws_cloudwatch_metric_alarm" "target_response_time" {
   tags = merge(
     local.default_module_tags,
     {
-      Name = "${var.service_name}-high-latency"
+      Name = "${aws_autoscaling_group.website.name}-high-latency"
     }
   )
 }
@@ -89,7 +89,7 @@ resource "aws_cloudwatch_metric_alarm" "target_response_time" {
 resource "aws_cloudwatch_metric_alarm" "low_success_rate" {
   count = local.alarms_enabled ? 1 : 0
 
-  alarm_name          = "${var.service_name}-low-success-rate"
+  alarm_name          = "${aws_autoscaling_group.website.name}-low-success-rate"
   alarm_description   = "Triggers when success rate drops below ${var.alarm_success_rate_threshold}% (Vanta compliance)"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = var.alarm_evaluation_periods
@@ -154,7 +154,7 @@ resource "aws_cloudwatch_metric_alarm" "low_success_rate" {
   tags = merge(
     local.default_module_tags,
     {
-      Name = "${var.service_name}-low-success-rate"
+      Name = "${aws_autoscaling_group.website.name}-low-success-rate"
     }
   )
 }
@@ -163,7 +163,7 @@ resource "aws_cloudwatch_metric_alarm" "low_success_rate" {
 resource "aws_cloudwatch_metric_alarm" "cpu_utilization" {
   count = local.alarms_enabled ? 1 : 0
 
-  alarm_name          = "${var.service_name}-high-cpu"
+  alarm_name          = "${aws_autoscaling_group.website.name}-high-cpu"
   alarm_description   = "Triggers when ASG CPU exceeds ${local.alarm_cpu_threshold}% for ${var.alarm_evaluation_periods * 5} minutes, indicating autoscaling failure (Vanta compliance)"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_evaluation_periods
@@ -184,7 +184,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_utilization" {
   tags = merge(
     local.default_module_tags,
     {
-      Name = "${var.service_name}-high-cpu"
+      Name = "${aws_autoscaling_group.website.name}-high-cpu"
     }
   )
 }
