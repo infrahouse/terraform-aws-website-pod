@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.13.0] - 2025-12-14
+
+### Bug Fixes
+
+- SNS topic naming conflict and remove obsolete lifecycle blocks
+
 ## [5.12.1] - 2025-12-01
 
 ### Bug Fixes
