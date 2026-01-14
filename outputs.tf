@@ -33,6 +33,11 @@ output "target_group_arn" {
   value       = aws_alb_target_group.website.arn
 }
 
+output "load_balancing_algorithm_type" {
+  description = "Load balancing algorithm used by the target group (round_robin or least_outstanding_requests)."
+  value       = aws_alb_target_group.website.load_balancing_algorithm_type
+}
+
 output "zone_id" {
   description = "Zone id where A records are created for the service."
   value       = aws_alb.website.zone_id

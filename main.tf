@@ -116,6 +116,8 @@ resource "aws_alb_target_group" "website" {
   target_type          = var.target_group_type
   vpc_id               = data.aws_subnet.selected.vpc_id
   deregistration_delay = var.target_group_deregistration_delay
+
+  load_balancing_algorithm_type = var.load_balancing_algorithm_type
   stickiness {
     type    = "lb_cookie"
     enabled = var.stickiness_enabled
