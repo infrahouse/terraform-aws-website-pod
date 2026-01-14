@@ -7,11 +7,11 @@ import boto3
 import pytest
 import requests
 from pytest_infrahouse import terraform_apply
+from pytest_infrahouse.utils import wait_for_instance_refresh
 
 from tests.conftest import (
     LOG,
     TEST_TIMEOUT,
-    wait_for_instance_refresh,
     UBUNTU_CODENAME,
 )
 
