@@ -2,7 +2,7 @@ locals {
   module = "infrahouse/website-pod/aws"
   # Module version is applied as a tag to the ALB (the primary resource)
   # per InfraHouse standards for tracking module versions in deployed infrastructure
-  module_version = "5.13.0"
+  module_version = "5.14.0"
   default_module_tags = merge(
     {
       environment : var.environment
