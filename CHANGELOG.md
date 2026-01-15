@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.14.0] - 2026-01-15
+
+### Features
+
+- Add load_balancing_algorithm_type variable for target group
+
 ## [5.13.0] - 2025-12-14
 
 ### Bug Fixes
