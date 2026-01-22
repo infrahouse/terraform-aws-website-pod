@@ -1,8 +1,53 @@
 # terraform-aws-website-pod
 
+[![Need Help?](https://img.shields.io/badge/Need%20Help%3F-Contact%20Us-0066CC)](https://infrahouse.com/contact)
+[![Docs](https://img.shields.io/badge/docs-github.io-blue)](https://infrahouse.github.io/terraform-aws-website-pod/)
+[![Registry](https://img.shields.io/badge/Terraform-Registry-purple?logo=terraform)](https://registry.terraform.io/modules/infrahouse/website-pod/aws/latest)
+[![Release](https://img.shields.io/github/release/infrahouse/terraform-aws-website-pod.svg)](https://github.com/infrahouse/terraform-aws-website-pod/releases/latest)
+[![AWS ALB](https://img.shields.io/badge/AWS-ALB-orange?logo=amazonwebservices)](https://aws.amazon.com/elasticloadbalancing/)
+[![Security](https://img.shields.io/github/actions/workflow/status/infrahouse/terraform-aws-website-pod/vuln-scanner-pr.yml?label=Security)](https://github.com/infrahouse/terraform-aws-website-pod/actions/workflows/vuln-scanner-pr.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 The module creates resources to run an HTTP service in an autoscaling group.
 It creates a load balancer that terminates SSL on the TCP port 443.
 It also issues the SSL certificate in ACM.
+
+## Why This Module?
+
+Setting up a production-ready web application on AWS requires configuring multiple interconnected services:
+ALB, ASG, ACM certificates, Route53 DNS, security groups, CloudWatch alarms, and more.
+This module handles all of that complexity in a single, well-tested package.
+
+**Key benefits:**
+- **Production-ready**: Battle-tested in production environments with comprehensive monitoring and alerting
+- **Security-focused**: Automatic SSL/TLS certificates, CAA records, configurable access controls, and compliance support (SOC2, HIPAA, PCI-DSS)
+- **Cost-optimized**: Support for spot instances to reduce costs by up to 90%
+- **Fully automated**: Zero-downtime deployments with instance refresh and lifecycle hooks
+
+## Features
+
+- **Application Load Balancer (ALB)** with automatic HTTP to HTTPS redirect
+- **Auto Scaling Group (ASG)** with target tracking scaling policies
+- **ACM SSL Certificate** with automatic DNS validation
+- **Route53 DNS Records** including CAA records for certificate security
+- **CloudWatch Alarms** for CPU, latency, error rates, and unhealthy hosts
+- **Security Groups** with configurable ingress rules for ALB and backend instances
+- **Spot Instance Support** with configurable on-demand base capacity
+- **ALB Access Logging** to S3 for security and compliance
+- **Session Stickiness** for stateful applications
+- **Lifecycle Hooks** for graceful instance launch and termination
+
+## Documentation
+
+For detailed documentation, visit the [GitHub Pages documentation site](https://infrahouse.github.io/terraform-aws-website-pod/).
+
+- [Getting Started](https://infrahouse.github.io/terraform-aws-website-pod/getting-started/)
+- [Architecture](https://infrahouse.github.io/terraform-aws-website-pod/architecture/)
+- [Configuration Reference](https://infrahouse.github.io/terraform-aws-website-pod/configuration/)
+- [Examples](https://infrahouse.github.io/terraform-aws-website-pod/examples/)
+- [Troubleshooting](https://infrahouse.github.io/terraform-aws-website-pod/troubleshooting/)
+
+## Quick Start
 
 > **Note**: Starting from version 2.0 the module separates the main aws provider and a provider for
 > Route53 resources. If you don't need to separate them, just pass the same provider for `aws` and `aws.dns`
@@ -237,9 +282,9 @@ make validate   # Validate Terraform configuration
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.11, < 7.0 |
-| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | >= 5.11, < 7.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.23.0 |
+| <a name="provider_aws.dns"></a> [aws.dns](#provider\_aws.dns) | 6.23.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
 ## Modules
 
@@ -358,7 +403,7 @@ make validate   # Validate Terraform configuration
 | <a name="input_instance_profile_permissions"></a> [instance\_profile\_permissions](#input\_instance\_profile\_permissions) | A JSON policy document to attach to the instance profile.<br/>This should be the output of an aws\_iam\_policy\_document data source.<br/><br/>Example:<br/>  instance\_profile\_permissions = data.aws\_iam\_policy\_document.my\_policy.json<br/><br/>If not specified, defaults to a minimal policy allowing sts:GetCallerIdentity. | `string` | `null` | no |
 | <a name="input_instance_role_name"></a> [instance\_role\_name](#input\_instance\_role\_name) | If specified, the instance profile role will have this name. Otherwise, the role name will be generated. | `string` | `null` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instances type | `string` | `"t3.micro"` | no |
-| <a name="input_internet_gateway_id"></a> [internet\_gateway\_id](#input\_internet\_gateway\_id) | Not used, but AWS Internet Gateway must be present. Ensure by passing its id. | `string` | n/a | yes |
+| <a name="input_internet_gateway_id"></a> [internet\_gateway\_id](#input\_internet\_gateway\_id) | Not used, but AWS Internet Gateway must be present. Ensure by passing its id. | `string` | `null` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | SSH keypair name to be deployed in EC2 instances | `string` | n/a | yes |
 | <a name="input_load_balancing_algorithm_type"></a> [load\_balancing\_algorithm\_type](#input\_load\_balancing\_algorithm\_type) | Load balancing algorithm for the target group.<br/><br/>**Available algorithms:**<br/>- `round_robin` (default): Distributes requests evenly across healthy targets.<br/>  Best for: General-purpose workloads with similar request processing times.<br/><br/>- `least_outstanding_requests`: Routes to the target with fewest in-flight requests.<br/>  Best for: Workloads with varying request processing times, long-running requests,<br/>  or when backend instances have different capacities.<br/><br/>**Note:** When stickiness is enabled, the algorithm applies only to initial<br/>session assignment. Subsequent requests from the same client go to the same target. | `string` | `"round_robin"` | no |
 | <a name="input_max_instance_lifetime_days"></a> [max\_instance\_lifetime\_days](#input\_max\_instance\_lifetime\_days) | The maximum amount of time, in \_days\_, that an instance can be in service, values must be either equal to 0 or between 7 and 365 days. | `number` | `30` | no |
@@ -415,3 +460,11 @@ make validate   # Validate Terraform configuration
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | Target group ARN that listens to the service port. |
 | <a name="output_zone_id"></a> [zone\_id](#output\_zone\_id) | Zone id where A records are created for the service. |
 <!-- END_TF_DOCS -->
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
