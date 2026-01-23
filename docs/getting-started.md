@@ -90,7 +90,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.14.0"
+  version = "5.15.0"
 
   # Required variables
   environment         = "production"
