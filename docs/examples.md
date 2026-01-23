@@ -13,7 +13,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   environment         = "production"
   ami                 = data.aws_ami.ubuntu.image_id
@@ -37,7 +37,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # Basic settings
   environment  = "production"
@@ -98,7 +98,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
@@ -128,7 +128,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
@@ -167,7 +167,7 @@ module "website" {
     aws.dns = aws.dns  # Use the cross-account provider
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... other variables ...
 }
@@ -184,7 +184,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
@@ -217,7 +217,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
@@ -241,7 +241,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
@@ -297,7 +297,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
@@ -328,7 +328,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
@@ -349,7 +349,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.15.0"
+  version = "5.16.0"
 
   # ... required variables ...
 
