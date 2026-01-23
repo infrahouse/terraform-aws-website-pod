@@ -248,6 +248,58 @@ variable "asg_scale_in_protected_instances" {
   }
 }
 
+variable "asg_default_cooldown" {
+  description = <<-EOF
+    Amount of time, in seconds, after a scaling activity completes before another
+    scaling activity can start. This prevents rapid scale-in/scale-out cycles.
+  EOF
+  type        = number
+  default     = 300
+
+  validation {
+    condition     = var.asg_default_cooldown >= 0 && var.asg_default_cooldown <= 3600
+    error_message = "asg_default_cooldown must be between 0 and 3600 seconds."
+  }
+}
+
+variable "asg_enabled_metrics" {
+  description = <<-EOF
+    List of ASG metrics to enable for CloudWatch monitoring.
+    Set to empty list to disable metrics collection.
+
+    Available metrics:
+    - GroupDesiredCapacity
+    - GroupInServiceInstances
+    - GroupPendingInstances
+    - GroupTerminatingInstances
+    - GroupTotalInstances
+    - GroupMinSize
+    - GroupMaxSize
+    - GroupInServiceCapacity
+    - GroupPendingCapacity
+    - GroupStandbyCapacity
+    - GroupStandbyInstances
+    - GroupTerminatingCapacity
+    - GroupTotalCapacity
+    - WarmPoolDesiredCapacity
+    - WarmPoolWarmedCapacity
+    - WarmPoolPendingCapacity
+    - WarmPoolTerminatingCapacity
+    - WarmPoolTotalCapacity
+    - WarmPoolMinSize
+    - GroupAndWarmPoolDesiredCapacity
+    - GroupAndWarmPoolTotalCapacity
+  EOF
+  type        = list(string)
+  default = [
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupPendingInstances",
+    "GroupTerminatingInstances",
+    "GroupTotalInstances",
+  ]
+}
+
 variable "autoscaling_target_cpu_load" {
   description = "Target CPU load for autoscaling"
   default     = 60
@@ -423,6 +475,21 @@ variable "target_group_type" {
   }
 }
 
+variable "target_group_protocol" {
+  description = <<-EOF
+    Protocol for the target group.
+    Use HTTP for standard backend communication (ALB terminates SSL).
+    Use HTTPS for end-to-end encryption to backend instances.
+  EOF
+  type        = string
+  default     = "HTTP"
+
+  validation {
+    condition     = contains(["HTTP", "HTTPS"], var.target_group_protocol)
+    error_message = "target_group_protocol must be either 'HTTP' or 'HTTPS'."
+  }
+}
+
 variable "load_balancing_algorithm_type" {
   description = <<-EOF
     Load balancing algorithm for the target group.
@@ -539,6 +606,15 @@ variable "certificate_issuers" {
   description = "List of certificate authority domains allowed to issue certificates for this domain (e.g., [\"amazon.com\", \"letsencrypt.org\"]). The module will format these as CAA records."
   type        = list(string)
   default     = ["amazon.com"]
+}
+
+variable "allow_wildcard_certificates" {
+  description = <<-EOF
+    If true, CAA records will allow wildcard certificates from the configured certificate_issuers.
+    If false, wildcard certificates are blocked.
+  EOF
+  type        = bool
+  default     = false
 }
 
 variable "attach_tagret_group_to_asg" {

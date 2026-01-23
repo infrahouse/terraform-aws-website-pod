@@ -4,6 +4,8 @@ resource "aws_autoscaling_group" "website" {
   min_size                  = var.asg_min_size
   max_size                  = var.asg_max_size
   min_elb_capacity          = local.min_elb_capacity
+  default_cooldown          = var.asg_default_cooldown
+  enabled_metrics           = var.asg_enabled_metrics
   vpc_zone_identifier       = var.backend_subnets
   health_check_type         = var.health_check_type
   wait_for_capacity_timeout = var.wait_for_capacity_timeout

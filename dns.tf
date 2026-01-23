@@ -20,6 +20,6 @@ resource "aws_route53_record" "extra_caa_amazon" {
   ttl      = 300
   records = concat(
     [for issuer in var.certificate_issuers : "0 issue \"${issuer}\""],
-    ["0 issuewild \";\""]
+    var.allow_wildcard_certificates ? [for issuer in var.certificate_issuers : "0 issuewild \"${issuer}\""] : ["0 issuewild \";\""]
   )
 }

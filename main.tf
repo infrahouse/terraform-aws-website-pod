@@ -5,7 +5,8 @@ resource "aws_alb" "website" {
   idle_timeout               = var.alb_idle_timeout
   # ALB is internal if subnets don't auto-assign public IPs
   # Otherwise, it's internet-facing (publicly accessible)
-  internal = !data.aws_subnet.selected.map_public_ip_on_launch
+  internal                   = !data.aws_subnet.selected.map_public_ip_on_launch
+  drop_invalid_header_fields = true
   security_groups = [
     aws_security_group.alb.id
   ]
@@ -112,7 +113,7 @@ resource "aws_alb_listener_rule" "website" {
 
 resource "aws_alb_target_group" "website" {
   port                 = var.target_group_port
-  protocol             = "HTTP"
+  protocol             = var.target_group_protocol
   target_type          = var.target_group_type
   vpc_id               = data.aws_subnet.selected.vpc_id
   deregistration_delay = var.target_group_deregistration_delay
