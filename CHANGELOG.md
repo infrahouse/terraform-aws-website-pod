@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.16.0] - 2026-01-23
+
+### Features
+
+- Add ASG metrics, target group protocol, and security enhancements
+
 ## [5.15.0] - 2026-01-23
 
 ### Documentation
