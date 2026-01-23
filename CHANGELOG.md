@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.15.0] - 2026-01-23
+
+### Documentation
+
+- Add comprehensive MkDocs documentation
+
 ## [5.14.0] - 2026-01-15
 
 ### Features
