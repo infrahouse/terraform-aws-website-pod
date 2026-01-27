@@ -4,6 +4,17 @@ resource "aws_route53_record" "extra" {
   zone_id  = var.zone_id
   name     = trimprefix(join(".", [var.dns_a_records[count.index], data.aws_route53_zone.webserver_zone.name]), ".")
   type     = "A"
+
+  # Weighted routing support for zero-downtime migrations
+  set_identifier = var.dns_routing_policy != "simple" ? var.dns_set_identifier : null
+
+  dynamic "weighted_routing_policy" {
+    for_each = var.dns_routing_policy == "weighted" ? [1] : []
+    content {
+      weight = var.dns_weight
+    }
+  }
+
   alias {
     name                   = aws_alb.website.dns_name
     zone_id                = aws_alb.website.zone_id

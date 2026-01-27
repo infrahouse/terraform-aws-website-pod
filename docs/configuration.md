@@ -199,6 +199,8 @@ module "website" {
 
 ## DNS Configuration
 
+### Basic DNS Records
+
 ```hcl
 module "website" {
   # ... required variables ...
@@ -206,6 +208,46 @@ module "website" {
   dns_a_records = ["", "www", "api"]  # Creates example.com, www.example.com, api.example.com
 }
 ```
+
+### Weighted Routing for Zero-Downtime Migrations
+
+Route53 weighted routing enables gradual traffic shifting between services, perfect for:
+- Blue/green deployments
+- Zero-downtime service migrations
+- A/B testing with traffic percentages
+
+```hcl
+# Old service (being deprecated) - receives 10% of traffic
+module "website_old" {
+  # ... required variables ...
+
+  dns_routing_policy = "weighted"
+  dns_set_identifier = "legacy-service"
+  dns_weight         = 10
+}
+
+# New service (receiving traffic) - receives 90% of traffic
+module "website_new" {
+  # ... required variables ...
+
+  dns_routing_policy = "weighted"
+  dns_set_identifier = "new-service"
+  dns_weight         = 90
+}
+```
+
+**Migration workflow:**
+
+1. Deploy new service with `dns_weight = 0` (no traffic)
+2. Convert existing service to weighted with `dns_weight = 100`
+3. Gradually shift traffic: 90/10 → 50/50 → 10/90 → 0/100
+4. Remove old service
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `dns_routing_policy` | string | `"simple"` | `"simple"` or `"weighted"` |
+| `dns_weight` | number | `100` | Weight for weighted routing (0-255) |
+| `dns_set_identifier` | string | `null` | Unique identifier (required for weighted) |
 
 ## Monitoring Configuration {#monitoring}
 
