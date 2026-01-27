@@ -602,6 +602,101 @@ variable "zone_id" {
   type        = string
 }
 
+variable "dns_routing_policy" {
+  description = <<-EOF
+    DNS routing policy for Route53 A records.
+
+    **Available policies:**
+    - `simple` (default): Standard DNS routing. Each A record resolves directly to the ALB.
+      Best for: Single deployments, standard configurations.
+
+    - `weighted`: Enables Route53 weighted routing policy for zero-downtime migrations.
+      Requires: dns_set_identifier must be set.
+      Best for: Blue/green deployments, gradual traffic migration, A/B testing.
+
+    **Migration workflow example:**
+    1. Deploy new service with `dns_routing_policy = "weighted"`, `dns_weight = 0`
+    2. Convert existing service to weighted with `dns_weight = 100`
+    3. Gradually shift: 90/10 → 50/50 → 10/90 → 0/100
+    4. Remove old service
+
+    **Note:** When using weighted routing, you can have multiple modules create
+    records for the same DNS name, each with a unique dns_set_identifier.
+
+    **Note:** This routing policy applies to ALL DNS records created via dns_a_records.
+    If you need different routing policies per record, deploy separate module instances.
+  EOF
+  type        = string
+  default     = "simple"
+
+  validation {
+    condition     = contains(["simple", "weighted"], var.dns_routing_policy)
+    error_message = "dns_routing_policy must be either 'simple' or 'weighted'. Got: ${var.dns_routing_policy}"
+  }
+}
+
+variable "dns_weight" {
+  description = <<-EOF
+    Weight for Route53 weighted routing policy (0-255).
+    Only used when dns_routing_policy = "weighted".
+
+    **Weight behavior:**
+    - 0: No traffic routed to this endpoint (useful during initial deployment)
+    - 255: Maximum weight priority
+    - Traffic distribution = (this_weight / sum_of_all_weights) * 100%
+
+    **Examples:**
+    - Two endpoints with weights 100 and 100: 50% each
+    - Two endpoints with weights 100 and 0: 100% to first, 0% to second
+    - Three endpoints with weights 70, 20, 10: 70%, 20%, 10%
+
+    **Migration tip:** Start new deployments with weight=0, then gradually increase.
+  EOF
+  type        = number
+  default     = 100
+
+  validation {
+    condition     = var.dns_weight >= 0 && var.dns_weight <= 255
+    error_message = "dns_weight must be between 0 and 255. Got: ${var.dns_weight}"
+  }
+}
+
+variable "dns_set_identifier" {
+  description = <<-EOF
+    Unique identifier for weighted routing records.
+    Required when dns_routing_policy is not "simple".
+
+    This identifier distinguishes between multiple weighted records with the same name.
+    Must be unique across all weighted records for the same DNS name.
+
+    **Recommended naming conventions:**
+    - Environment-based: "production-blue", "production-green"
+    - Version-based: "v1", "v2", "v3"
+    - Region-based: "us-west-2-primary", "us-east-1-secondary"
+    - Module-based: "website-pod-main", "ecs-service-new"
+
+    **Example:**
+    ```hcl
+    # Old service (being deprecated)
+    dns_routing_policy = "weighted"
+    dns_set_identifier = "legacy-service"
+    dns_weight         = 10
+
+    # New service (receiving traffic)
+    dns_routing_policy = "weighted"
+    dns_set_identifier = "new-service"
+    dns_weight         = 90
+    ```
+  EOF
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.dns_set_identifier == null ? true : length(var.dns_set_identifier) <= 128
+    error_message = "dns_set_identifier must be 128 characters or less."
+  }
+}
+
 variable "certificate_issuers" {
   description = "List of certificate authority domains allowed to issue certificates for this domain (e.g., [\"amazon.com\", \"letsencrypt.org\"]). The module will format these as CAA records."
   type        = list(string)

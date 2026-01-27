@@ -338,6 +338,71 @@ module "website" {
 }
 ```
 
+## Weighted Routing for Zero-Downtime Migrations {#weighted-routing}
+
+Use Route53 weighted routing to gradually migrate traffic between services:
+
+```hcl
+# Legacy service - receives 10% of traffic during migration
+module "website_legacy" {
+  providers = {
+    aws     = aws
+    aws.dns = aws
+  }
+  source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
+  version = "5.16.0"
+
+  environment         = "production"
+  service_name        = "website-legacy"
+  ami                 = data.aws_ami.ubuntu.image_id
+  backend_subnets     = module.vpc.private_subnets
+  subnets             = module.vpc.public_subnets
+  zone_id             = aws_route53_zone.main.zone_id
+  dns_a_records       = ["", "www"]
+  key_pair_name       = aws_key_pair.deployer.key_name
+  userdata            = module.cloud_init_legacy.userdata
+
+  # Weighted routing - 10% traffic
+  dns_routing_policy = "weighted"
+  dns_set_identifier = "legacy-v1"
+  dns_weight         = 10
+}
+
+# New service - receives 90% of traffic
+module "website_new" {
+  providers = {
+    aws     = aws
+    aws.dns = aws
+  }
+  source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
+  version = "5.16.0"
+
+  environment         = "production"
+  service_name        = "website-new"
+  ami                 = data.aws_ami.ubuntu.image_id
+  backend_subnets     = module.vpc.private_subnets
+  subnets             = module.vpc.public_subnets
+  zone_id             = aws_route53_zone.main.zone_id
+  dns_a_records       = ["", "www"]
+  key_pair_name       = aws_key_pair.deployer.key_name
+  userdata            = module.cloud_init_new.userdata
+
+  # Weighted routing - 90% traffic
+  dns_routing_policy = "weighted"
+  dns_set_identifier = "new-v2"
+  dns_weight         = 90
+}
+```
+
+**Migration workflow:**
+
+1. Deploy new service with `dns_weight = 0` (receives no traffic)
+2. Convert existing service to weighted with `dns_weight = 100`
+3. Gradually shift: 90/10 → 50/50 → 10/90 → 0/100
+4. Remove old service
+
+See [examples/weighted-routing](../examples/weighted-routing/) for a complete working example.
+
 ## ECS Integration
 
 Use the module with ECS (disable ASG target group attachment):
