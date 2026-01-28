@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.17.0] - 2026-01-28
+
+### Documentation
+
+- Fix provider versions in README to show constraints instead of pinned versions
+
+### Features
+
+- Add Route53 weighted routing support for zero-downtime migrations
+
 ## [5.16.0] - 2026-01-23
 
 ### Features
