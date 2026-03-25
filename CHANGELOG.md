@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.18.0] - 2026-03-25
+
+### Bug Fixes
+
+- Add abort_incomplete_multipart_upload to Athena results bucket lifecycle
+- Set has_encrypted_data to true and document random suffix in database name
+
+### Documentation
+
+- Add comprehensive MkDocs documentation
+
+### Features
+
+- Add optional Athena querying support for ALB access logs
+
 ## [5.17.0] - 2026-01-28
 
 ### Documentation
