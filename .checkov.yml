@@ -1,0 +1,91 @@
+framework:
+  - terraform
+skip-path:
+  - test_data
+  - examples
+skip-check:
+  # CKV_TF_1: Module sources use version pins from private registry (registry.infrahouse.com)
+  # InfraHouse standard: exact version pinning from registry.infrahouse.com.
+  # Renovate manages version updates via individual PRs for explicit review.
+  - CKV_TF_1
+
+  # CKV_TF_2: Module sources use version pins from private registry
+  # Same as CKV_TF_1 - Renovate handles module version updates.
+  - CKV_TF_2
+
+  # CKV_AWS_91: ALB access logging not enabled
+  # Access logging is controlled by var.alb_access_log_enabled.
+  # Users opt in; the module creates the S3 bucket and configures logging when enabled.
+  - CKV_AWS_91
+
+  # CKV_AWS_131: ALB drop_invalid_header_fields not enabled
+  # This is a trade-off between strict HTTP compliance and compatibility.
+  # Some legitimate clients send non-standard headers.
+  - CKV_AWS_131
+
+  # CKV_AWS_150: ASG does not use launch configuration
+  # The module uses launch templates (aws_launch_template), which is the
+  # recommended approach. Checkov may misdetect this.
+  - CKV_AWS_150
+
+  # CKV_AWS_18: S3 bucket access logging not enabled on access log / Athena results buckets
+  # The access log bucket IS the log destination. Enabling logging on it would
+  # create a circular dependency. The Athena results bucket contains ephemeral
+  # query results with a 30-day lifecycle.
+  - CKV_AWS_18
+
+  # CKV_AWS_144: S3 cross-region replication not enabled
+  # Access log and Athena results buckets are operational, not DR.
+  # Cross-region replication would double storage costs without benefit.
+  - CKV_AWS_144
+
+  # CKV_AWS_145: S3 bucket not encrypted with KMS CMK
+  # Buckets use SSE-S3 (AES-256) encryption, which is the InfraHouse standard.
+  # CMK is only required for CloudTrail per security policy.
+  - CKV_AWS_145
+
+  # CKV_AWS_2: ALB protocol is HTTPS
+  # The HTTP listener exists solely to 301-redirect to HTTPS. You cannot redirect
+  # HTTP to HTTPS without listening on HTTP first.
+  - CKV_AWS_2
+
+  # CKV2_AWS_20: ALB redirects HTTP requests into HTTPS ones
+  # The ALB does redirect via aws_alb_listener.redirect_to_ssl. Checkov cannot
+  # correlate the listener redirect action with the ALB resource.
+  - CKV2_AWS_20
+
+  # CKV_AWS_260: No security groups allow ingress from 0.0.0.0/0 to port 80
+  # This is a public-facing ALB - it must accept internet traffic on port 80
+  # (to redirect to 443). Controlled by var.alb_ingress_cidr_blocks.
+  - CKV_AWS_260
+
+  # CKV_AWS_277: No security groups allow ingress from 0.0.0.0/0 to port -1
+  # These are ICMP rules (protocol icmp, port -1 = all ICMP types). ICMP is
+  # explicitly allowed per InfraHouse security standards for troubleshooting.
+  - CKV_AWS_277
+
+  # CKV_AWS_378: AWS Load Balancer doesn't use HTTP protocol
+  # Target group uses HTTP because TLS terminates at the ALB. Backend traffic
+  # (ALB -> instances) runs over HTTP within the VPC. Standard ALB pattern.
+  - CKV_AWS_378
+
+  # CKV2_AWS_5: Security group not attached to another resource
+  # Security groups are referenced across module boundaries (ALB, ASG).
+  # Checkov cannot trace references through module boundaries.
+  - CKV2_AWS_5
+
+  # CKV2_AWS_28: ALB has no associated WAF
+  # WAF configuration is outside the scope of this module.
+  # Users should attach WAF at a higher level if needed.
+  - CKV2_AWS_28
+
+  # CKV2_AWS_61: S3 bucket lifecycle configuration not set
+  # Access log bucket retention is managed externally or by the consumer.
+  # Athena results bucket has a 30-day lifecycle configured.
+  - CKV2_AWS_61
+
+  # CKV2_AWS_62: S3 bucket event notifications not enabled
+  # No use case for event notifications on access log or Athena results buckets.
+  - CKV2_AWS_62
+compact: true
+quiet: false

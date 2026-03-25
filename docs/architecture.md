@@ -93,6 +93,21 @@ When `alarm_emails` is configured, the module creates:
 | Low Success Rate | HTTP 5xx errors | Alert when error rate exceeds threshold |
 | CPU Utilization | `CPUUtilization` | Alert when autoscaling can't keep up |
 
+### Access Log Querying (Athena)
+
+When `alb_access_log_athena_enabled` is true (and access logging is enabled), the module creates:
+
+| Resource | Purpose |
+|----------|---------|
+| Glue Catalog Database | Metadata database named `<service_name>_<random_suffix>` |
+| Glue Catalog Table | Table schema mapping RegexSerDe over ALB log files in S3 |
+| Athena Workgroup | Pre-configured workgroup with encrypted results output |
+| S3 Results Bucket | Stores query results with 30-day lifecycle expiry |
+
+The Glue table uses `RegexSerDe` to parse the ALB access log format into 33 typed columns
+(type, time, elb, client_ip, client_port, target_ip, etc.). Athena reads the log files
+directly from S3 — no ETL pipeline or data copying required.
+
 ## Request Flow
 
 1. User requests `https://example.com`

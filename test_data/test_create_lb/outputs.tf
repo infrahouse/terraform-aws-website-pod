@@ -37,3 +37,29 @@ output "cloudwatch_alarm_arns" {
   description = "ARNs of CloudWatch alarms created for ALB and ASG monitoring"
   value       = module.lb.cloudwatch_alarm_arns
 }
+
+# Athena access log outputs
+output "alb_access_log_glue_database" {
+  description = "Name of the Glue catalog database for ALB access logs"
+  value       = module.lb.alb_access_log_glue_database
+}
+
+output "alb_access_log_glue_table" {
+  description = "Name of the Glue catalog table for ALB access logs"
+  value       = module.lb.alb_access_log_glue_table
+}
+
+output "athena_workgroup" {
+  description = "Name of the Athena workgroup for querying ALB access logs"
+  value       = module.lb.athena_workgroup
+}
+
+output "athena_results_bucket" {
+  description = "S3 bucket where Athena query results are stored"
+  value       = module.lb.athena_results_bucket
+}
+
+output "client_instance_id" {
+  description = "Instance ID of the test client EC2 instance"
+  value       = aws_instance.client.id
+}

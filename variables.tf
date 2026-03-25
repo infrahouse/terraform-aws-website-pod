@@ -24,6 +24,21 @@ variable "alb_access_log_force_destroy" {
   default     = false
 }
 
+variable "alb_access_log_athena_enabled" {
+  description = <<-EOF
+    When true (and `alb_access_log_enabled` is also true), creates the full
+    Athena querying stack for this service's ALB access logs:
+    - Glue catalog database and table (schema over the access log S3 bucket)
+    - S3 results bucket (encrypted, 30-day expiry)
+    - Athena workgroup pre-configured with the results bucket
+
+    The Glue database is named after `service_name` (hyphens replaced with
+    underscores) and the table is named `<service_name>_alb_access_logs`.
+  EOF
+  type        = bool
+  default     = false
+}
+
 variable "alb_healthcheck_enabled" {
   description = "Whether health checks are enabled."
   type        = bool

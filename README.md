@@ -167,6 +167,52 @@ When enabled, the module creates an encrypted, versioned S3 bucket that stores d
 
 **Note:** Starting in v6.0.0, access logging will be enabled by default. See `variables.tf` for details.
 
+### Querying Access Logs with Athena
+
+When access logging is enabled, you can optionally set up Athena to query the logs directly using SQL:
+
+```hcl
+module "website" {
+  # ... other configuration ...
+
+  alb_access_log_enabled        = true
+  alb_access_log_athena_enabled = true
+}
+```
+
+This creates:
+- **Glue catalog database and table** — schema definition over the access log S3 data
+- **Athena workgroup** — pre-configured with an encrypted results bucket (30-day expiry)
+- **S3 results bucket** — stores Athena query output
+
+Once deployed, query your access logs from the [Athena console](https://console.aws.amazon.com/athena/):
+
+```sql
+-- Recent 5xx errors
+SELECT time, client_ip, request_url, elb_status_code, target_status_code
+FROM <service_name>_alb_access_logs
+WHERE elb_status_code >= 500
+ORDER BY time DESC
+LIMIT 100;
+
+-- Top clients by request count
+SELECT client_ip, COUNT(*) AS requests
+FROM <service_name>_alb_access_logs
+GROUP BY client_ip
+ORDER BY requests DESC
+LIMIT 20;
+
+-- Slow requests
+SELECT time, client_ip, request_url, target_processing_time
+FROM <service_name>_alb_access_logs
+WHERE target_processing_time > 5.0
+ORDER BY target_processing_time DESC
+LIMIT 50;
+```
+
+Replace `<service_name>` with your `service_name` value (hyphens replaced with underscores).
+Select the Athena workgroup named `<service_name>-alb-logs-<suffix>` before running queries.
+
 ## Deprecated Variables
 
 The following variables contain typos and are deprecated. They will be removed in **v6.0.0**.
@@ -290,6 +336,7 @@ make validate   # Validate Terraform configuration
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_athena_results"></a> [athena\_results](#module\_athena\_results) | registry.infrahouse.com/infrahouse/s3-bucket/aws | 0.3.1 |
 | <a name="module_instance_profile"></a> [instance\_profile](#module\_instance\_profile) | registry.infrahouse.com/infrahouse/instance-profile/aws | 1.9.0 |
 
 ## Resources
@@ -302,6 +349,7 @@ make validate   # Validate Terraform configuration
 | [aws_alb_listener.redirect_to_ssl](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/alb_listener) | resource |
 | [aws_alb_listener_rule.website](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/alb_listener_rule) | resource |
 | [aws_alb_target_group.website](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/alb_target_group) | resource |
+| [aws_athena_workgroup.alb_access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/athena_workgroup) | resource |
 | [aws_autoscaling_group.website](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
 | [aws_autoscaling_lifecycle_hook.launching](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_lifecycle_hook) | resource |
 | [aws_autoscaling_lifecycle_hook.terminating](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_lifecycle_hook) | resource |
@@ -310,12 +358,15 @@ make validate   # Validate Terraform configuration
 | [aws_cloudwatch_metric_alarm.low_success_rate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.target_response_time](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.unhealthy_host_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_glue_catalog_database.alb_access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/glue_catalog_database) | resource |
+| [aws_glue_catalog_table.alb_access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/glue_catalog_table) | resource |
 | [aws_launch_template.website](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
 | [aws_lb_listener.ssl](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
 | [aws_route53_record.cert_validation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.extra](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.extra_caa_amazon](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_s3_bucket.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_lifecycle_configuration.athena_results](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration) | resource |
 | [aws_s3_bucket_policy.access_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.public_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
 | [aws_s3_bucket_server_side_encryption_configuration.access_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
@@ -334,6 +385,7 @@ make validate   # Validate Terraform configuration
 | [aws_vpc_security_group_ingress_rule.backend_ssh_local](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
 | [aws_vpc_security_group_ingress_rule.backend_user_traffic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
 | [aws_vpc_security_group_ingress_rule.https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
+| [random_string.glue_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [random_string.profile_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [aws_ami.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
@@ -358,6 +410,7 @@ make validate   # Validate Terraform configuration
 | <a name="input_alarm_target_response_time_threshold"></a> [alarm\_target\_response\_time\_threshold](#input\_alarm\_target\_response\_time\_threshold) | Target response time threshold in seconds that triggers a latency alarm.<br/><br/>If not specified, defaults to 80% of alb\_idle\_timeout to alert before<br/>connections start timing out.<br/><br/>Example: With default alb\_idle\_timeout=60s, this will default to 48s.<br/><br/>You can override this for more aggressive monitoring:<br/>- API services: 0.5 - 1.0 seconds<br/>- Web applications: 1.0 - 2.0 seconds<br/>- Backend services: 2.0 - 5.0 seconds | `number` | `null` | no |
 | <a name="input_alarm_topic_arns"></a> [alarm\_topic\_arns](#input\_alarm\_topic\_arns) | List of existing SNS topic ARNs to send ALB alarms to.<br/>Use this for advanced integrations like PagerDuty, Slack, OpsGenie, etc.<br/><br/>These topics will receive notifications in addition to any configured alarm\_emails.<br/><br/>**Example:**<pre>alarm_topic_arns = [<br/>  "arn:aws:sns:us-east-1:123456789012:pagerduty-critical",<br/>  "arn:aws:sns:us-east-1:123456789012:slack-alerts"<br/>]</pre> | `list(string)` | `[]` | no |
 | <a name="input_alarm_unhealthy_host_threshold"></a> [alarm\_unhealthy\_host\_threshold](#input\_alarm\_unhealthy\_host\_threshold) | Number of unhealthy hosts that triggers an alarm.<br/><br/>Uses GreaterThanThreshold comparison, so:<br/>- 0 = Alert when ANY host becomes unhealthy (count > 0)<br/>- 1 = Alert when 2+ hosts are unhealthy (count > 1) - default<br/>- 2 = Alert when 3+ hosts are unhealthy (count > 2)<br/><br/>**Recommended:** Set to 0 for immediate alerting in production, or 1 to allow<br/>for graceful deployments where one host may briefly be unhealthy during updates. | `number` | `1` | no |
+| <a name="input_alb_access_log_athena_enabled"></a> [alb\_access\_log\_athena\_enabled](#input\_alb\_access\_log\_athena\_enabled) | When true (and `alb_access_log_enabled` is also true), creates the full<br/>Athena querying stack for this service's ALB access logs:<br/>- Glue catalog database and table (schema over the access log S3 bucket)<br/>- S3 results bucket (encrypted, 30-day expiry)<br/>- Athena workgroup pre-configured with the results bucket<br/><br/>The Glue database is named after `service_name` (hyphens replaced with<br/>underscores) and the table is named `<service_name>_alb_access_logs`. | `bool` | `false` | no |
 | <a name="input_alb_access_log_enabled"></a> [alb\_access\_log\_enabled](#input\_alb\_access\_log\_enabled) | Whether to enable ALB access logging to S3.<br/><br/>**Security Best Practice:** Enabling access logs is recommended for:<br/>- Security investigations and incident response<br/>- Debugging production issues<br/>- Compliance requirements (SOC2, HIPAA, PCI-DSS)<br/>- AWS Well-Architected Framework best practices<br/><br/>When enabled, creates an encrypted, versioned S3 bucket for access logs.<br/>Storage costs are minimal compared to security and operational benefits.<br/><br/>**Note:** In v6.0.0, this will default to `true` (enabled by default).<br/>See UPGRADE-6.0.md for details. | `bool` | `false` | no |
 | <a name="input_alb_access_log_force_destroy"></a> [alb\_access\_log\_force\_destroy](#input\_alb\_access\_log\_force\_destroy) | Destroy S3 bucket with access logs even if non-empty | `bool` | `false` | no |
 | <a name="input_alb_healthcheck_enabled"></a> [alb\_healthcheck\_enabled](#input\_alb\_healthcheck\_enabled) | Whether health checks are enabled. | `bool` | `true` | no |
@@ -446,9 +499,13 @@ make validate   # Validate Terraform configuration
 | <a name="output_acm_certificate_arn"></a> [acm\_certificate\_arn](#output\_acm\_certificate\_arn) | ARN of the ACM certificate used by the load balancer |
 | <a name="output_alarm_sns_topic_arn"></a> [alarm\_sns\_topic\_arn](#output\_alarm\_sns\_topic\_arn) | ARN of the SNS topic for ALB CloudWatch alarms (if created). IMPORTANT: Email subscribers must confirm their subscription via the AWS confirmation email to receive notifications. |
 | <a name="output_alarm_sns_topic_name"></a> [alarm\_sns\_topic\_name](#output\_alarm\_sns\_topic\_name) | Name of the SNS topic for ALB CloudWatch alarms (if created) |
+| <a name="output_alb_access_log_glue_database"></a> [alb\_access\_log\_glue\_database](#output\_alb\_access\_log\_glue\_database) | Name of the Glue catalog database for ALB access logs (null if not enabled) |
+| <a name="output_alb_access_log_glue_table"></a> [alb\_access\_log\_glue\_table](#output\_alb\_access\_log\_glue\_table) | Name of the Glue catalog table for ALB access logs (null if not enabled) |
 | <a name="output_alb_security_group_id"></a> [alb\_security\_group\_id](#output\_alb\_security\_group\_id) | ID of the ALB security group |
 | <a name="output_asg_arn"></a> [asg\_arn](#output\_asg\_arn) | ARN of the created autoscaling group |
 | <a name="output_asg_name"></a> [asg\_name](#output\_asg\_name) | Name of the created autoscaling group |
+| <a name="output_athena_results_bucket"></a> [athena\_results\_bucket](#output\_athena\_results\_bucket) | S3 bucket where Athena query results are stored (null if not enabled) |
+| <a name="output_athena_workgroup"></a> [athena\_workgroup](#output\_athena\_workgroup) | Name of the Athena workgroup for querying ALB access logs (null if not enabled) |
 | <a name="output_backend_security_group"></a> [backend\_security\_group](#output\_backend\_security\_group) | Map with security group id and rules |
 | <a name="output_backend_security_group_id"></a> [backend\_security\_group\_id](#output\_backend\_security\_group\_id) | ID of the backend instances security group |
 | <a name="output_cloudwatch_alarm_arns"></a> [cloudwatch\_alarm\_arns](#output\_cloudwatch\_alarm\_arns) | ARNs of CloudWatch alarms created for ALB and ASG monitoring |

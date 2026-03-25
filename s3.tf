@@ -53,14 +53,14 @@ data "aws_iam_policy_document" "access_logs" {
     principals {
       type = "AWS"
       identifiers = [
-        "arn:aws:iam::${local.elb_account_map[data.aws_region.current.name]}:root"
+        "arn:aws:iam::${local.elb_account_map[local.region]}:root"
       ]
     }
     actions = [
       "s3:PutObject",
     ]
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.access_log[count.index].id}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
+      "arn:aws:s3:::${aws_s3_bucket.access_log[count.index].id}/AWSLogs/${local.account_id}/*"
     ]
   }
   statement {

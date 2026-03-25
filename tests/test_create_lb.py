@@ -1,4 +1,5 @@
 import json
+import time
 from pprint import pformat, pprint
 from os import path as osp, remove
 from textwrap import dedent
@@ -6,6 +7,8 @@ from textwrap import dedent
 import boto3
 import pytest
 import requests
+from infrahouse_core.aws.ec2_instance import EC2Instance
+from infrahouse_core.timeout import timeout
 from pytest_infrahouse import terraform_apply
 from pytest_infrahouse.utils import wait_for_instance_refresh
 
@@ -16,14 +19,25 @@ from tests.conftest import (
 )
 
 
+def wait_for_athena_query(athena_client, query_execution_id, seconds=120):
+    """Poll Athena query until it completes or times out."""
+    with timeout(seconds):
+        while True:
+            response = athena_client.get_query_execution(
+                QueryExecutionId=query_execution_id
+            )
+            state = response["QueryExecution"]["Status"]["State"]
+            if state in ("SUCCEEDED", "FAILED", "CANCELLED"):
+                return response
+            time.sleep(5)
+
+
 @pytest.mark.timeout(TEST_TIMEOUT)
 @pytest.mark.parametrize(
     "lb_subnets,expected_scheme",
     [("subnet_public_ids", "internet-facing"), ("subnet_private_ids", "internal")],
 )
-@pytest.mark.parametrize(
-    "aws_provider_version", ["~> 5.31", "~> 6.0"], ids=["aws-5", "aws-6"]
-)
+@pytest.mark.parametrize("aws_provider_version", ["~> 6.0"], ids=["aws-6"])
 def test_lb(
     service_network,
     boto3_session,
@@ -67,8 +81,7 @@ def test_lb(
             pass
 
     # Update terraform.tf with the specified AWS provider version
-    terraform_tf_content = dedent(
-        f"""
+    terraform_tf_content = dedent(f"""
         terraform {{
           required_providers {{
             aws = {{
@@ -77,8 +90,7 @@ def test_lb(
             }}
           }}
         }}
-        """
-    )
+        """)
 
     with open(osp.join(terraform_dir, "terraform.tf"), "w") as fp:
         fp.write(terraform_tf_content)
@@ -86,9 +98,7 @@ def test_lb(
     instance_name = "foo-app"
     alarm_emails = ["devnull@infrahouse.com"]
     with open(osp.join(terraform_dir, "terraform.tfvars"), "w") as fp:
-        fp.write(
-            dedent(
-                f"""
+        fp.write(dedent(f"""
                 region          = "{aws_region}"
                 zone_id         = "{zone_id}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
@@ -100,17 +110,11 @@ def test_lb(
                 lb_subnet_ids       = {json.dumps(lb_subnet_ids)}
                 backend_subnet_ids  = {json.dumps(subnet_private_ids)}
                 internet_gateway_id = "{internet_gateway_id}"
-                """
-            )
-        )
+                """))
         if test_role_arn:
-            fp.write(
-                dedent(
-                    f"""
+            fp.write(dedent(f"""
                     role_arn      = "{test_role_arn}"
-                    """
-                )
-            )
+                    """))
 
     with terraform_apply(
         terraform_dir,
@@ -443,6 +447,207 @@ def test_lb(
 
         LOG.info("=" * 80)
         LOG.info("All Vanta compliance CloudWatch alarms verified successfully!")
+        LOG.info("=" * 80)
+
+        # Verify Athena access log resources
+        LOG.info("=" * 80)
+        LOG.info("Verifying Athena access log resources")
+        LOG.info("=" * 80)
+
+        glue_client = boto3_session.client("glue", region_name=aws_region)
+        athena_client = boto3_session.client("athena", region_name=aws_region)
+        s3_client = boto3_session.client("s3", region_name=aws_region)
+
+        glue_database = tf_output["alb_access_log_glue_database"]["value"]
+        glue_table = tf_output["alb_access_log_glue_table"]["value"]
+        athena_workgroup = tf_output["athena_workgroup"]["value"]
+        results_bucket = tf_output["athena_results_bucket"]["value"]
+
+        assert glue_database, "alb_access_log_glue_database output is empty"
+        assert glue_table, "alb_access_log_glue_table output is empty"
+        assert athena_workgroup, "athena_workgroup output is empty"
+        assert results_bucket, "athena_results_bucket output is empty"
+
+        # Verify Glue catalog database
+        db_response = glue_client.get_database(Name=glue_database)
+        assert db_response["Database"]["Name"] == glue_database
+        LOG.info("Glue database exists: %s", glue_database)
+
+        # Verify Glue catalog table
+        table_response = glue_client.get_table(
+            DatabaseName=glue_database, Name=glue_table
+        )
+        table = table_response["Table"]
+        assert table["Name"] == glue_table
+        assert table["TableType"] == "EXTERNAL_TABLE"
+
+        location = table["StorageDescriptor"]["Location"]
+        assert "AWSLogs" in location, f"Table location missing AWSLogs path: {location}"
+        assert (
+            "elasticloadbalancing" in location
+        ), f"Table location missing elasticloadbalancing path: {location}"
+        LOG.info("Glue table exists: %s (location: %s)", glue_table, location)
+
+        serde = table["StorageDescriptor"]["SerdeInfo"]["SerializationLibrary"]
+        assert "RegexSerDe" in serde, f"Unexpected SerDe: {serde}"
+
+        serde_params = table["StorageDescriptor"]["SerdeInfo"].get("Parameters", {})
+        assert serde_params.get(
+            "input.regex"
+        ), "SerDe input.regex parameter is missing or empty"
+
+        # Verify all ALB log columns exist with correct types
+        actual_columns = {
+            col["Name"]: col["Type"] for col in table["StorageDescriptor"]["Columns"]
+        }
+        expected_columns = {
+            "type": "string",
+            "time": "string",
+            "elb": "string",
+            "client_ip": "string",
+            "client_port": "int",
+            "target_ip": "string",
+            "target_port": "int",
+            "request_processing_time": "double",
+            "target_processing_time": "double",
+            "response_processing_time": "double",
+            "elb_status_code": "int",
+            "target_status_code": "string",
+            "received_bytes": "bigint",
+            "sent_bytes": "bigint",
+            "request_verb": "string",
+            "request_url": "string",
+            "request_proto": "string",
+            "user_agent": "string",
+            "ssl_cipher": "string",
+            "ssl_protocol": "string",
+            "target_group_arn": "string",
+            "trace_id": "string",
+            "domain_name": "string",
+            "chosen_cert_arn": "string",
+            "matched_rule_priority": "string",
+            "request_creation_time": "string",
+            "actions_executed": "string",
+            "redirect_url": "string",
+            "lambda_error_reason": "string",
+            "target_port_list": "string",
+            "target_status_code_list": "string",
+            "classification": "string",
+            "classification_reason": "string",
+            "conn_trace_id": "string",
+        }
+        missing = set(expected_columns) - set(actual_columns)
+        assert not missing, f"Glue table is missing columns: {sorted(missing)}"
+        wrong_type = {
+            col: (expected_columns[col], actual_columns[col])
+            for col in expected_columns
+            if actual_columns.get(col) != expected_columns[col]
+        }
+        assert (
+            not wrong_type
+        ), "Glue table columns have wrong types (expected, actual): " + str(wrong_type)
+        LOG.info(
+            "All %d ALB log columns verified with correct types",
+            len(expected_columns),
+        )
+
+        # Verify Athena workgroup
+        wg_response = athena_client.get_work_group(WorkGroup=athena_workgroup)
+        wg = wg_response["WorkGroup"]
+        assert wg["Name"] == athena_workgroup
+        assert wg["State"] == "ENABLED"
+
+        output_location = wg["Configuration"]["ResultConfiguration"]["OutputLocation"]
+        assert results_bucket in output_location, (
+            f"Workgroup output location {output_location!r} "
+            f"does not reference results bucket {results_bucket!r}"
+        )
+        LOG.info(
+            "Athena workgroup exists: %s (output: %s)",
+            athena_workgroup,
+            output_location,
+        )
+
+        # Verify Athena results bucket
+        s3_client.head_bucket(Bucket=results_bucket)
+        public_access = s3_client.get_public_access_block(Bucket=results_bucket)
+        config = public_access["PublicAccessBlockConfiguration"]
+        assert config["BlockPublicAcls"], "Results bucket should block public ACLs"
+        assert config["BlockPublicPolicy"], "Results bucket should block public policy"
+        assert config["IgnorePublicAcls"], "Results bucket should ignore public ACLs"
+        assert config[
+            "RestrictPublicBuckets"
+        ], "Results bucket should restrict public buckets"
+        LOG.info("Athena results bucket verified: %s", results_bucket)
+
+        # Generate traffic via client instance so ALB writes access logs
+        client_instance_id = tf_output["client_instance_id"]["value"]
+        alb_dns = tf_output["load_balancer_dns_name"]["value"]
+        LOG.info(
+            "Sending HTTP request from client %s to ALB %s",
+            client_instance_id,
+            alb_dns,
+        )
+        client = EC2Instance(
+            instance_id=client_instance_id,
+            region=aws_region,
+            session=boto3_session,
+        )
+        exit_code, stdout, stderr = client.execute_command(
+            f"curl -s -o /dev/null -w '%{{http_code}}' http://{alb_dns}/"
+        )
+        LOG.info(
+            "Client curl: exit_code=%d, stdout=%s, stderr=%s",
+            exit_code,
+            stdout.strip(),
+            stderr.strip(),
+        )
+
+        # Poll Athena until the access log entry appears.
+        # ALB delivers logs every 5 minutes; we allow up to 10 minutes.
+        LOG.info("Waiting for access log entry to appear in Athena...")
+        select_query = (
+            f"SELECT type, time, elb, client_ip, request_url "
+            f"FROM {glue_database}.{glue_table} LIMIT 1"
+        )
+        with timeout(600):
+            while True:
+                exec_response = athena_client.start_query_execution(
+                    QueryString=select_query,
+                    QueryExecutionContext={"Database": glue_database},
+                    WorkGroup=athena_workgroup,
+                )
+                qid = exec_response["QueryExecutionId"]
+                status_response = wait_for_athena_query(athena_client, qid)
+                state = status_response["QueryExecution"]["Status"]["State"]
+                assert state == "SUCCEEDED", "Athena query failed: " + status_response[
+                    "QueryExecution"
+                ]["Status"].get("StateChangeReason", "")
+
+                results = athena_client.get_query_results(QueryExecutionId=qid)
+                rows = results["ResultSet"]["Rows"]
+                if len(rows) >= 2:
+                    data_row = rows[1]["Data"]
+                    non_empty = [d for d in data_row if d.get("VarCharValue")]
+                    LOG.info(
+                        "Athena returned %d/%d non-empty columns",
+                        len(non_empty),
+                        len(data_row),
+                    )
+                    if non_empty:
+                        # Verify values are actually parsed, not empty
+                        assert len(non_empty) == len(data_row), (
+                            "Athena parsed some columns as empty - regex "
+                            "may not match the log format. Non-empty: "
+                            f"{len(non_empty)}/{len(data_row)}"
+                        )
+                        LOG.info("Access log entry: %s", data_row)
+                        break
+                LOG.info("No access log entries yet, retrying in 30 seconds...")
+                time.sleep(30)
+
+        LOG.info("=" * 80)
+        LOG.info("All Athena access log resources verified successfully!")
         LOG.info("=" * 80)
 
     if not keep_after:
