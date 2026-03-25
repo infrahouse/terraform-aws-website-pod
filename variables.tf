@@ -32,8 +32,9 @@ variable "alb_access_log_athena_enabled" {
     - S3 results bucket (encrypted, 30-day expiry)
     - Athena workgroup pre-configured with the results bucket
 
-    The Glue database is named after `service_name` (hyphens replaced with
-    underscores) and the table is named `<service_name>_alb_access_logs`.
+    The Glue database is named `<service_name>_<random_suffix>` (hyphens
+    replaced with underscores) and the table is named
+    `<service_name>_alb_access_logs`.
   EOF
   type        = bool
   default     = false
