@@ -3,11 +3,16 @@ locals {
   # Module version is applied as a tag to the ALB (the primary resource)
   # per InfraHouse standards for tracking module versions in deployed infrastructure
   module_version = "5.17.0"
+
+  # Short aliases for commonly used data sources
+  account_id = data.aws_caller_identity.current.account_id
+  region     = data.aws_region.current.name
+
   default_module_tags = merge(
     {
       environment : var.environment
       service : var.service_name
-      account : data.aws_caller_identity.current.account_id
+      account : local.account_id
       created_by_module : local.module
     },
     var.upstream_module != null ? {
@@ -116,4 +121,10 @@ locals {
     length(var.alarm_emails) > 0 ? [aws_sns_topic.alarms[0].arn] : [],
     var.alarm_topic_arns
   )
+
+  # Athena / Glue for ALB access logs
+  glue_enabled  = var.alb_access_log_enabled && var.alb_access_log_athena_enabled
+  glue_suffix   = local.glue_enabled ? random_string.glue_suffix[0].result : ""
+  glue_database = "${replace(var.service_name, "-", "_")}_${local.glue_suffix}"
+  glue_table    = "${replace(var.service_name, "-", "_")}_alb_access_logs"
 }

@@ -28,9 +28,7 @@ def test_update_dns(
 
     instance_name = "foo-app"
     with open(osp.join(terraform_dir, "terraform.tfvars"), "w") as fp:
-        fp.write(
-            dedent(
-                f"""
+        fp.write(dedent(f"""
                 region          = "{aws_region}"
                 zone_id         = "{zone_id}"
                 ubuntu_codename = "{UBUNTU_CODENAME}"
@@ -40,17 +38,11 @@ def test_update_dns(
                 lb_subnet_ids = {json.dumps(subnet_public_ids)}
                 backend_subnet_ids = {json.dumps(subnet_private_ids)}
                 internet_gateway_id = "{internet_gateway_id}"
-                """
-            )
-        )
+                """))
         if test_role_arn:
-            fp.write(
-                dedent(
-                    f"""
+            fp.write(dedent(f"""
                     role_arn      = "{test_role_arn}"
-                    """
-                )
-            )
+                    """))
 
     # Create website pod first time
     with terraform_apply(
@@ -63,9 +55,7 @@ def test_update_dns(
 
         # Update DNS records
         with open(osp.join(terraform_dir, "terraform.tfvars"), "w") as fp:
-            fp.write(
-                dedent(
-                    f"""
+            fp.write(dedent(f"""
                         region          = "{aws_region}"
                         zone_id         = "{zone_id}"
                         ubuntu_codename = "{UBUNTU_CODENAME}"
@@ -77,17 +67,11 @@ def test_update_dns(
                         lb_subnet_ids = {json.dumps(subnet_public_ids)}
                         backend_subnet_ids = {json.dumps(subnet_private_ids)}
                         internet_gateway_id = "{internet_gateway_id}"
-                        """
-                )
-            )
+                        """))
             if test_role_arn:
-                fp.write(
-                    dedent(
-                        f"""
+                fp.write(dedent(f"""
                         role_arn      = "{test_role_arn}"
-                        """
-                    )
-                )
+                        """))
         # Make sure the second apply succeeds
         with terraform_apply(
             terraform_dir,

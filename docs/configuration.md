@@ -145,6 +145,35 @@ module "website" {
 }
 ```
 
+### Access Log Querying with Athena
+
+```hcl
+module "website" {
+  # ... required variables ...
+
+  alb_access_log_enabled        = true   # Required
+  alb_access_log_athena_enabled = true   # Creates Athena querying stack
+}
+```
+
+This creates a Glue catalog (database + table), Athena workgroup, and S3 results bucket.
+Query your logs from the Athena console using SQL:
+
+```sql
+SELECT time, client_ip, request_url, elb_status_code
+FROM <service_name>_alb_access_logs
+WHERE elb_status_code >= 500
+ORDER BY time DESC
+LIMIT 100;
+```
+
+| Output | Description |
+|--------|-------------|
+| `alb_access_log_glue_database` | Glue catalog database name |
+| `alb_access_log_glue_table` | Glue catalog table name |
+| `athena_workgroup` | Athena workgroup name |
+| `athena_results_bucket` | S3 bucket for query results |
+
 ## Security Configuration
 
 ### ALB Access Control

@@ -136,6 +136,26 @@ output "alarm_sns_topic_name" {
   value       = length(aws_sns_topic.alarms) > 0 ? aws_sns_topic.alarms[0].name : null
 }
 
+output "alb_access_log_glue_database" {
+  description = "Name of the Glue catalog database for ALB access logs (null if not enabled)"
+  value       = local.glue_enabled ? aws_glue_catalog_database.alb_access_logs[0].name : null
+}
+
+output "alb_access_log_glue_table" {
+  description = "Name of the Glue catalog table for ALB access logs (null if not enabled)"
+  value       = local.glue_enabled ? aws_glue_catalog_table.alb_access_logs[0].name : null
+}
+
+output "athena_workgroup" {
+  description = "Name of the Athena workgroup for querying ALB access logs (null if not enabled)"
+  value       = local.glue_enabled ? aws_athena_workgroup.alb_access_logs[0].name : null
+}
+
+output "athena_results_bucket" {
+  description = "S3 bucket where Athena query results are stored (null if not enabled)"
+  value       = local.glue_enabled ? module.athena_results[0].bucket_name : null
+}
+
 output "cloudwatch_alarm_arns" {
   description = "ARNs of CloudWatch alarms created for ALB and ASG monitoring"
   value = {
