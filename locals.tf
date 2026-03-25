@@ -2,7 +2,7 @@ locals {
   module = "infrahouse/website-pod/aws"
   # Module version is applied as a tag to the ALB (the primary resource)
   # per InfraHouse standards for tracking module versions in deployed infrastructure
-  module_version = "5.17.0"
+  module_version = "5.18.0"
 
   # Short aliases for commonly used data sources
   account_id = data.aws_caller_identity.current.account_id

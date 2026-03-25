@@ -32,7 +32,7 @@ module "website" {
     aws.dns = aws
   }
   source  = "registry.infrahouse.com/infrahouse/website-pod/aws"
-  version = "5.17.0"
+  version = "5.18.0"
 
   environment         = "production"
   ami                 = data.aws_ami.ubuntu.image_id
