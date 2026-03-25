@@ -70,7 +70,7 @@ resource "aws_glue_catalog_table" "alb_access_logs" {
 
   parameters = {
     "EXTERNAL"           = "TRUE"
-    "has_encrypted_data" = "false"
+    "has_encrypted_data" = "true"
   }
 
   storage_descriptor {
