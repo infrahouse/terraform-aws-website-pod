@@ -972,3 +972,57 @@ variable "alarm_evaluation_periods" {
     error_message = "Evaluation periods must be at least 1"
   }
 }
+
+# ----------------------------------------------------------------------
+# Warm pool
+# ----------------------------------------------------------------------
+
+variable "warm_pool_state" {
+  description = <<-EOF
+    Pool state for the ASG warm pool. When set, enables a warm pool of pre-
+    initialized instances that resume in seconds rather than running cloud-init
+    from scratch on scale-out. Set to null to disable the warm pool entirely.
+
+    Valid values: `Stopped`, `Running`, `Hibernated`.
+
+    Note: `Hibernated` requires the AMI/instance type to support hibernation
+    and is **not supported on bare-metal instance types** (e.g. `*.metal`).
+    For bare-metal use `Stopped`.
+  EOF
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.warm_pool_state == null || contains(["Stopped", "Running", "Hibernated"], coalesce(var.warm_pool_state, "Stopped"))
+    error_message = "warm_pool_state must be one of: Stopped, Running, Hibernated."
+  }
+}
+
+variable "warm_pool_min_size" {
+  description = <<-EOF
+    Minimum number of instances to keep in the warm pool. Only takes effect
+    when `warm_pool_state` is set.
+  EOF
+  type        = number
+  default     = 0
+}
+
+variable "warm_pool_max_group_prepared_capacity" {
+  description = <<-EOF
+    Maximum number of instances that are allowed to be in the warm pool or in
+    any state except Terminated for the ASG. Defaults to the AWS default
+    (ASG MaxSize) when null.
+  EOF
+  type        = number
+  default     = null
+}
+
+variable "warm_pool_reuse_on_scale_in" {
+  description = <<-EOF
+    Whether terminated instances from the ASG should be reused in the warm
+    pool. AWS default is false (instances are terminated, not pooled, on
+    scale-in).
+  EOF
+  type        = bool
+  default     = false
+}
