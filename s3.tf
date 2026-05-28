@@ -18,7 +18,7 @@ module "access_log" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "access_log" {
-  bucket = module.access_log.bucket_id
+  bucket = module.access_log.bucket_name
 
   rule {
     id     = "expire-access-logs"
