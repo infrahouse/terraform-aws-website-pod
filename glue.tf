@@ -8,10 +8,14 @@ resource "random_string" "glue_suffix" {
 module "athena_results" {
   count   = local.glue_enabled ? 1 : 0
   source  = "registry.infrahouse.com/infrahouse/s3-bucket/aws"
-  version = "0.3.1"
+  version = "0.6.0"
 
   bucket_prefix = "${var.alb_name_prefix}-athena-results-"
   force_destroy = var.alb_access_log_force_destroy
+
+  vanta_exemptions = {
+    "aws-s3-cross-region-replication-enabled" = "Ephemeral Athena query results with 30-day lifecycle"
+  }
 
   tags = local.default_module_tags
 }
@@ -74,7 +78,7 @@ resource "aws_glue_catalog_table" "alb_access_logs" {
   }
 
   storage_descriptor {
-    location      = "s3://${aws_s3_bucket.access_log[0].id}/AWSLogs/${local.account_id}/elasticloadbalancing/${local.region}/"
+    location      = "s3://${module.access_log.bucket_name}/AWSLogs/${local.account_id}/elasticloadbalancing/${local.region}/"
     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
 

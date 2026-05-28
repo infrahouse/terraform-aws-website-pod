@@ -136,6 +136,16 @@ output "alarm_sns_topic_name" {
   value       = length(aws_sns_topic.alarms) > 0 ? aws_sns_topic.alarms[0].name : null
 }
 
+output "access_log_bucket_name" {
+  description = "Name of the ALB access log S3 bucket"
+  value       = module.access_log.bucket_name
+}
+
+output "access_log_replica_bucket_name" {
+  description = "Name of the access log replica bucket"
+  value       = module.access_log.replica_bucket_name
+}
+
 output "alb_access_log_glue_database" {
   description = "Name of the Glue catalog database for ALB access logs (null if not enabled)"
   value       = local.glue_enabled ? aws_glue_catalog_database.alb_access_logs[0].name : null

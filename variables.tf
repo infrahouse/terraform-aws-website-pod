@@ -1,21 +1,12 @@
-variable "alb_access_log_enabled" {
-  description = <<-EOF
-    Whether to enable ALB access logging to S3.
+variable "replication_region" {
+  description = "AWS region for cross-region replication of the ALB access log bucket."
+  type        = string
+}
 
-    **Security Best Practice:** Enabling access logs is recommended for:
-    - Security investigations and incident response
-    - Debugging production issues
-    - Compliance requirements (SOC2, HIPAA, PCI-DSS)
-    - AWS Well-Architected Framework best practices
-
-    When enabled, creates an encrypted, versioned S3 bucket for access logs.
-    Storage costs are minimal compared to security and operational benefits.
-
-    **Note:** In v6.0.0, this will default to `true` (enabled by default).
-    See UPGRADE-6.0.md for details.
-  EOF
-  type        = bool
-  default     = false
+variable "alb_access_log_expiration_days" {
+  description = "Number of days to retain ALB access logs before expiration."
+  type        = number
+  default     = 365
 }
 
 variable "alb_access_log_force_destroy" {
@@ -26,8 +17,8 @@ variable "alb_access_log_force_destroy" {
 
 variable "alb_access_log_athena_enabled" {
   description = <<-EOF
-    When true (and `alb_access_log_enabled` is also true), creates the full
-    Athena querying stack for this service's ALB access logs:
+    When true, creates the full Athena querying stack for this service's ALB
+    access logs:
     - Glue catalog database and table (schema over the access log S3 bucket)
     - S3 results bucket (encrypted, 30-day expiry)
     - Athena workgroup pre-configured with the results bucket
@@ -40,11 +31,6 @@ variable "alb_access_log_athena_enabled" {
   default     = false
 }
 
-variable "alb_healthcheck_enabled" {
-  description = "Whether health checks are enabled."
-  type        = bool
-  default     = true
-}
 variable "alb_healthcheck_path" {
   description = "Path on the webserver that the elb will check to determine whether the instance is healthy or not"
   type        = string
@@ -77,16 +63,6 @@ variable "alb_healthcheck_healthy_threshold" {
     condition     = var.alb_healthcheck_healthy_threshold >= 2 && var.alb_healthcheck_healthy_threshold <= 10
     error_message = "Healthy threshold must be between 2 and 10."
   }
-}
-
-variable "alb_healthcheck_uhealthy_threshold" {
-  description = <<-EOF
-    ⚠️  DEPRECATED - Contains typo, use 'alb_healthcheck_unhealthy_threshold' instead.
-    This variable will be removed in v6.0.0. See deprecations.tf for details.
-    Number of times the host must fail the test to be considered unhealthy.
-  EOF
-  type        = number
-  default     = null
 }
 
 variable "alb_healthcheck_unhealthy_threshold" {
@@ -143,6 +119,11 @@ variable "alb_name_prefix" {
   description = "Name prefix for the load balancer"
   type        = string
   default     = "web"
+
+  validation {
+    condition     = length(var.alb_name_prefix) <= 6
+    error_message = "alb_name_prefix must be <= 6 characters (AWS ALB name_prefix limit)."
+  }
 }
 
 variable "alb_ingress_cidr_blocks" {
@@ -728,16 +709,6 @@ variable "allow_wildcard_certificates" {
   default     = false
 }
 
-variable "attach_tagret_group_to_asg" {
-  description = <<-EOF
-    ⚠️  DEPRECATED - Contains typo, use 'attach_target_group_to_asg' instead.
-    This variable will be removed in v6.0.0. See deprecations.tf for details.
-    Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself.
-  EOF
-  type        = bool
-  default     = null
-}
-
 variable "attach_target_group_to_asg" {
   description = "Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself."
   type        = bool
@@ -778,8 +749,7 @@ variable "alarm_emails" {
     alarm_emails = ["ops-team@example.com", "on-call@example.com"]
     ```
 
-    ⚠️  **FUTURE REQUIREMENT:** In v6.0.0, at least one email address will be required.
-    See UPGRADE-6.0.md for migration details.
+    At least one of `alarm_emails` or `alarm_topic_arns` must be configured.
   EOF
   type        = list(string)
   default     = []

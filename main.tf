@@ -10,32 +10,25 @@ resource "aws_alb" "website" {
   security_groups = [
     aws_security_group.alb.id
   ]
-  dynamic "access_logs" {
-    for_each = var.alb_access_log_enabled ? [{}] : []
-    content {
-      bucket  = aws_s3_bucket.access_log[0].bucket
-      enabled = var.alb_access_log_enabled
-    }
+  access_logs {
+    bucket  = module.access_log.bucket_name
+    enabled = true
   }
   tags = merge(
     local.default_module_tags,
-    local.access_log_tags,
     {
-      module_version : local.module_version
-    },
-
-    {
-      VantaContainsUserData : false
-      VantaContainsEPHI : false
+      access_log_bucket     = module.access_log.bucket_name
+      module_version        = local.module_version
+      VantaContainsUserData = false
+      VantaContainsEPHI     = false
     }
   )
-}
-
-locals {
-  access_log_tags = var.alb_access_log_enabled ? {
-    access_log_bucket : aws_s3_bucket.access_log[0].bucket
-    access_log_bucket_policy : aws_s3_bucket_policy.access_logs[0].id
-  } : {}
+  lifecycle {
+    precondition {
+      condition     = length(var.alarm_emails) > 0 || length(var.alarm_topic_arns) > 0
+      error_message = "Vanta compliance requires alarm notifications. Set alarm_emails or alarm_topic_arns."
+    }
+  }
 }
 
 resource "aws_alb_listener" "redirect_to_ssl" {
@@ -125,7 +118,6 @@ resource "aws_alb_target_group" "website" {
   }
 
   health_check {
-    enabled             = var.alb_healthcheck_enabled
     path                = var.alb_healthcheck_path
     port                = var.alb_healthcheck_port
     protocol            = var.alb_healthcheck_protocol

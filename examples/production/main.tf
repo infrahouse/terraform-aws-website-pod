@@ -176,7 +176,6 @@ module "website" {
   alb_healthcheck_path = "/health"
 
   # Security
-  alb_access_log_enabled     = true
   enable_deletion_protection = true
 
   # Instance permissions

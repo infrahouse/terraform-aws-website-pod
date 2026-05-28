@@ -2,7 +2,7 @@ locals {
   module = "infrahouse/website-pod/aws"
   # Module version is applied as a tag to the ALB (the primary resource)
   # per InfraHouse standards for tracking module versions in deployed infrastructure
-  module_version = "5.18.0"
+  module_version = "6.0.0"
 
   # Short aliases for commonly used data sources
   account_id = data.aws_caller_identity.current.account_id
@@ -83,17 +83,8 @@ locals {
     "il-central-1"   = "581348220920"
   }
 
-  # Backward compatibility for deprecated variables with typos
-  # Priority: new variable > old variable > default (the default is already set on the new variable)
-  unhealthy_threshold = coalesce(
-    var.alb_healthcheck_unhealthy_threshold,
-    var.alb_healthcheck_uhealthy_threshold,
-  )
-
-  attach_tg_to_asg = coalesce(
-    var.attach_target_group_to_asg,
-    var.attach_tagret_group_to_asg,
-  )
+  unhealthy_threshold = var.alb_healthcheck_unhealthy_threshold
+  attach_tg_to_asg    = var.attach_target_group_to_asg
 
   # Vanta Compliance: CloudWatch Alarms
   # Determine if alarms should be created
@@ -123,7 +114,7 @@ locals {
   )
 
   # Athena / Glue for ALB access logs
-  glue_enabled  = var.alb_access_log_enabled && var.alb_access_log_athena_enabled
+  glue_enabled  = var.alb_access_log_athena_enabled
   glue_suffix   = local.glue_enabled ? random_string.glue_suffix[0].result : ""
   glue_database = "${replace(var.service_name, "-", "_")}_${local.glue_suffix}"
   glue_table    = "${replace(var.service_name, "-", "_")}_alb_access_logs"

@@ -19,3 +19,8 @@ variable "alarm_emails" {
   type    = list(string)
   default = ["devnull@infrahouse.com"]
 }
+
+variable "replication_region" {
+  type    = string
+  default = "us-east-1"
+}
