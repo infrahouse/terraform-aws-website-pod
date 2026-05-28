@@ -1,54 +1,40 @@
-resource "aws_s3_bucket" "access_log" {
-  count         = var.alb_access_log_enabled ? 1 : 0
-  bucket_prefix = "${var.alb_name_prefix}-access-log-"
-  force_destroy = var.alb_access_log_force_destroy
+module "access_log" {
+  source  = "registry.infrahouse.com/infrahouse/s3-bucket/aws"
+  version = "0.6.0"
+
+  bucket_prefix      = "${var.alb_name_prefix}-access-log-"
+  bucket_policy      = data.aws_iam_policy_document.access_logs.json
+  force_destroy      = var.alb_access_log_force_destroy
+  enable_versioning  = true
+  replication_region = var.replication_region
+
   tags = merge(
     local.default_module_tags,
     {
-      VantaContainsUserData : false
-      VantaContainsEPHI : false
+      VantaContainsUserData = false
+      VantaContainsEPHI     = false
     }
   )
 }
 
-resource "aws_s3_bucket_public_access_block" "public_access" {
-  count                   = var.alb_access_log_enabled ? 1 : 0
-  bucket                  = aws_s3_bucket.access_log[count.index].id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "access_log" {
-  count  = var.alb_access_log_enabled ? 1 : 0
-  bucket = aws_s3_bucket.access_log[count.index].id
+resource "aws_s3_bucket_lifecycle_configuration" "access_log" {
+  bucket = module.access_log.bucket_id
 
   rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+    id     = "expire-access-logs"
+    status = "Enabled"
+
+    expiration {
+      days = var.alb_access_log_expiration_days
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = var.alb_access_log_expiration_days
     }
   }
 }
 
-resource "aws_s3_bucket_versioning" "access_log" {
-  count  = var.alb_access_log_enabled ? 1 : 0
-  bucket = aws_s3_bucket.access_log[count.index].id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_s3_bucket_policy" "access_logs" {
-  count  = var.alb_access_log_enabled ? 1 : 0
-  bucket = aws_s3_bucket.access_log[count.index].id
-  policy = data.aws_iam_policy_document.access_logs[count.index].json
-}
-
-
 data "aws_iam_policy_document" "access_logs" {
-  count = var.alb_access_log_enabled ? 1 : 0
   statement {
     principals {
       type = "AWS"
@@ -60,34 +46,7 @@ data "aws_iam_policy_document" "access_logs" {
       "s3:PutObject",
     ]
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.access_log[count.index].id}/AWSLogs/${local.account_id}/*"
+      "arn:aws:s3:::${var.alb_name_prefix}-access-log-*/AWSLogs/${local.account_id}/*"
     ]
   }
-  statement {
-    sid    = "AllowSSLRequestsOnly"
-    effect = "Deny"
-
-    actions = [
-      "s3:*",
-    ]
-
-    resources = [
-      aws_s3_bucket.access_log[count.index].arn,
-      "${aws_s3_bucket.access_log[count.index].arn}/*",
-    ]
-
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-
-    condition {
-      test     = "Bool"
-      variable = "aws:SecureTransport"
-      values = [
-        "false"
-      ]
-    }
-  }
-
 }

@@ -23,4 +23,7 @@ module "lb" {
   health_check_type            = "ELB"
   instance_profile_permissions = data.aws_iam_policy_document.webserver_permissions.json
   instance_role_name           = var.instance_role_name
+  replication_region           = var.replication_region
+  alb_access_log_force_destroy = true
+  alarm_emails                 = var.alarm_emails
 }

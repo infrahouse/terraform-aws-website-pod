@@ -35,7 +35,7 @@ module "lb" {
     local.env
   ]
   vanta_user_data_stored        = "Test data"
-  alb_access_log_enabled        = true
+  replication_region            = var.replication_region
   alb_access_log_force_destroy  = true
   alb_access_log_athena_enabled = true
   alarm_emails                  = var.alarm_emails
