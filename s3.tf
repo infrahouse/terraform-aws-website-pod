@@ -24,6 +24,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_log" {
     id     = "expire-access-logs"
     status = "Enabled"
 
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
     expiration {
       days = var.alb_access_log_expiration_days
     }
