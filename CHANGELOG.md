@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.0.0] - 2026-05-29
+
+### Bug Fixes
+
+- Add abort_incomplete_multipart_upload to lifecycle rule
+- Use bucket_name instead of bucket_id, fix deprecated region attribute
+- Use actual bucket ARN in ELB access log policy, drop redundant enable_versioning
+- Rollback version variable - not released yet
+
+### Features
+
+- V6.0.0 breaking changes — S3 bucket migration, deprecated variable removal, always-on logging
+- Remove internet_gateway_id variable, set replication_region dynamically in tests
+
 ## [5.18.0] - 2026-03-25
 
 ### Bug Fixes
