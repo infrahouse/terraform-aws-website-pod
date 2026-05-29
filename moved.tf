@@ -22,3 +22,13 @@ moved {
   from = aws_s3_bucket_policy.access_logs[0]
   to   = module.access_log.aws_s3_bucket_policy.this
 }
+
+moved {
+  from = aws_vpc_security_group_ingress_rule.alb_listener_port
+  to   = aws_vpc_security_group_ingress_rule.alb_listener_port["0.0.0.0/0"]
+}
+
+moved {
+  from = aws_vpc_security_group_ingress_rule.https
+  to   = aws_vpc_security_group_ingress_rule.https["0.0.0.0/0"]
+}
