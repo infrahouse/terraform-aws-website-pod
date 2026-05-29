@@ -116,16 +116,15 @@ module "website_legacy" {
     aws.dns = aws
   }
 
-  environment         = "production"
-  service_name        = "website-legacy"
-  ami                 = data.aws_ami.ubuntu.image_id
-  backend_subnets     = module.vpc.private_subnets
-  subnets             = module.vpc.public_subnets
-  zone_id             = aws_route53_zone.example.zone_id
-  dns_a_records       = ["", "www"]
-  internet_gateway_id = module.vpc.igw_id
-  key_pair_name       = aws_key_pair.deployer.key_name
-  userdata            = module.userdata_legacy.userdata
+  environment     = "production"
+  service_name    = "website-legacy"
+  ami             = data.aws_ami.ubuntu.image_id
+  backend_subnets = module.vpc.private_subnets
+  subnets         = module.vpc.public_subnets
+  zone_id         = aws_route53_zone.example.zone_id
+  dns_a_records   = ["", "www"]
+  key_pair_name   = aws_key_pair.deployer.key_name
+  userdata        = module.userdata_legacy.userdata
 
   # Weighted routing configuration - 10% of traffic
   dns_routing_policy = "weighted"
@@ -144,16 +143,15 @@ module "website_new" {
     aws.dns = aws
   }
 
-  environment         = "production"
-  service_name        = "website-new"
-  ami                 = data.aws_ami.ubuntu.image_id
-  backend_subnets     = module.vpc.private_subnets
-  subnets             = module.vpc.public_subnets
-  zone_id             = aws_route53_zone.example.zone_id
-  dns_a_records       = ["", "www"]
-  internet_gateway_id = module.vpc.igw_id
-  key_pair_name       = aws_key_pair.deployer.key_name
-  userdata            = module.userdata_new.userdata
+  environment     = "production"
+  service_name    = "website-new"
+  ami             = data.aws_ami.ubuntu.image_id
+  backend_subnets = module.vpc.private_subnets
+  subnets         = module.vpc.public_subnets
+  zone_id         = aws_route53_zone.example.zone_id
+  dns_a_records   = ["", "www"]
+  key_pair_name   = aws_key_pair.deployer.key_name
+  userdata        = module.userdata_new.userdata
 
   # Weighted routing configuration - 90% of traffic
   dns_routing_policy = "weighted"

@@ -367,12 +367,6 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "internet_gateway_id" { # tflint-ignore: terraform_unused_declarations
-  description = "Not used, but AWS Internet Gateway must be present. Ensure by passing its id."
-  type        = string
-  default     = null
-}
-
 variable "health_check_grace_period" {
   description = "ASG will wait up to this number of seconds for instance to become healthy"
   type        = number

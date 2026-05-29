@@ -25,7 +25,6 @@ def test_lb(
 ):
     subnet_public_ids = service_network["subnet_public_ids"]["value"]
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
-    internet_gateway_id = service_network["internet_gateway_id"]["value"]
     zone_id = subzone["subzone_id"]["value"]
 
     terraform_dir = "test_data/test_spot"
@@ -38,7 +37,7 @@ def test_lb(
 
                 lb_subnet_ids       = {json.dumps(subnet_public_ids)}
                 backend_subnet_ids  = {json.dumps(subnet_private_ids)}
-                internet_gateway_id = "{internet_gateway_id}"
+                replication_region  = "{"us-east-2" if aws_region == "us-east-1" else "us-east-1"}"
                 """))
         if test_role_arn:
             fp.write(dedent(f"""

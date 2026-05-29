@@ -11,7 +11,6 @@ variable "asg_name" { default = null }
 
 variable "backend_subnet_ids" {}
 variable "lb_subnet_ids" {}
-variable "internet_gateway_id" {}
 variable "instance_role_name" { default = null }
 
 variable "alarm_emails" {

@@ -78,15 +78,14 @@ module "website" {
     aws.dns = aws
   }
 
-  environment         = "development"
-  ami                 = data.aws_ami.ubuntu.image_id
-  backend_subnets     = module.vpc.private_subnets
-  subnets             = module.vpc.public_subnets
-  zone_id             = aws_route53_zone.example.zone_id
-  dns_a_records       = ["", "www"]
-  internet_gateway_id = module.vpc.igw_id
-  key_pair_name       = aws_key_pair.deployer.key_name
-  userdata            = module.userdata.userdata
+  environment     = "development"
+  ami             = data.aws_ami.ubuntu.image_id
+  backend_subnets = module.vpc.private_subnets
+  subnets         = module.vpc.public_subnets
+  zone_id         = aws_route53_zone.example.zone_id
+  dns_a_records   = ["", "www"]
+  key_pair_name   = aws_key_pair.deployer.key_name
+  userdata        = module.userdata.userdata
 }
 
 output "website_url" {
