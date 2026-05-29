@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.0.1] - 2026-05-29
+
+### Bug Fixes
+
+- Add moved blocks for ALB security group ingress rules
+
 ## [6.0.0] - 2026-05-29
 
 ### Bug Fixes
