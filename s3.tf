@@ -5,7 +5,6 @@ module "access_log" {
   bucket_prefix      = "${var.alb_name_prefix}-access-log-"
   bucket_policy      = data.aws_iam_policy_document.access_logs.json
   force_destroy      = var.alb_access_log_force_destroy
-  enable_versioning  = true
   replication_region = var.replication_region
 
   tags = merge(
@@ -50,7 +49,7 @@ data "aws_iam_policy_document" "access_logs" {
       "s3:PutObject",
     ]
     resources = [
-      "arn:aws:s3:::${var.alb_name_prefix}-access-log-*/AWSLogs/${local.account_id}/*"
+      "${module.access_log.bucket_arn}/*"
     ]
   }
 }
