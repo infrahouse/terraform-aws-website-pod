@@ -59,11 +59,6 @@ variable "public_subnet_ids" {
   type        = list(string)
 }
 
-variable "internet_gateway_id" {
-  description = "Internet Gateway ID"
-  type        = string
-}
-
 variable "key_pair_name" {
   description = "SSH key pair name"
   type        = string
@@ -155,10 +150,9 @@ module "website" {
   root_volume_size = 50
 
   # Network
-  backend_subnets     = var.private_subnet_ids
-  subnets             = var.public_subnet_ids
-  internet_gateway_id = var.internet_gateway_id
-  key_pair_name       = var.key_pair_name
+  backend_subnets = var.private_subnet_ids
+  subnets         = var.public_subnet_ids
+  key_pair_name   = var.key_pair_name
 
   # DNS
   zone_id       = var.zone_id

@@ -56,7 +56,6 @@ def test_lb(
     autoscaling_client = boto3_session.client("autoscaling", region_name=aws_region)
 
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
-    internet_gateway_id = service_network["internet_gateway_id"]["value"]
     lb_subnet_ids = service_network[lb_subnets]["value"]
     zone_id = subzone["subzone_id"]["value"]
 
@@ -109,7 +108,7 @@ def test_lb(
 
                 lb_subnet_ids       = {json.dumps(lb_subnet_ids)}
                 backend_subnet_ids  = {json.dumps(subnet_private_ids)}
-                internet_gateway_id = "{internet_gateway_id}"
+                replication_region  = "{"us-east-2" if aws_region == "us-east-1" else "us-east-1"}"
                 """))
         if test_role_arn:
             fp.write(dedent(f"""

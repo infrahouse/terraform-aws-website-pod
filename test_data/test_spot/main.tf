@@ -15,7 +15,6 @@ module "lb" {
   asg_name                     = var.asg_name
   asg_min_size                 = 2
   on_demand_base_capacity      = 1
-  internet_gateway_id          = var.internet_gateway_id
   zone_id                      = var.zone_id
   dns_a_records                = var.dns_a_records
   key_pair_name                = aws_key_pair.test.key_name
