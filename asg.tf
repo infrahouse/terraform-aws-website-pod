@@ -56,6 +56,17 @@ resource "aws_autoscaling_group" "website" {
     min_healthy_percentage = var.asg_min_healthy_percentage
     max_healthy_percentage = var.asg_max_healthy_percentage
   }
+  dynamic "warm_pool" {
+    for_each = var.warm_pool_state != null ? [1] : []
+    content {
+      pool_state                  = var.warm_pool_state
+      min_size                    = var.warm_pool_min_size
+      max_group_prepared_capacity = var.warm_pool_max_group_prepared_capacity
+      instance_reuse_policy {
+        reuse_on_scale_in = var.warm_pool_reuse_on_scale_in
+      }
+    }
+  }
   dynamic "tag" {
     for_each = merge(
       local.default_asg_tags,
@@ -88,6 +99,15 @@ resource "aws_launch_template" "website" {
     http_tokens            = "required"
     http_endpoint          = "enabled"
     instance_metadata_tags = "enabled"
+  }
+  dynamic "cpu_options" {
+    for_each = var.cpu_options == null ? [] : [var.cpu_options]
+    content {
+      amd_sev_snp           = cpu_options.value.amd_sev_snp
+      core_count            = cpu_options.value.core_count
+      nested_virtualization = cpu_options.value.nested_virtualization
+      threads_per_core      = cpu_options.value.threads_per_core
+    }
   }
   block_device_mappings {
     device_name = data.aws_ami.selected.root_device_name
