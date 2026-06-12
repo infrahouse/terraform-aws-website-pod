@@ -936,3 +936,75 @@ variable "alarm_evaluation_periods" {
     error_message = "Evaluation periods must be at least 1"
   }
 }
+
+# ----------------------------------------------------------------------
+# CPU options
+# ----------------------------------------------------------------------
+
+variable "cpu_options" {
+  description = <<-EOF
+    Optional CPU options for the launch template. Set to null (default) to
+    let AWS apply the instance-type defaults. `nested_virtualization` (one
+    of "enabled" / "disabled") is only supported on Intel 8th-gen non-metal
+    instance types — c8i, m8i, r8i (Feb 2026+).
+  EOF
+  type = object({
+    amd_sev_snp           = optional(string)
+    core_count            = optional(number)
+    nested_virtualization = optional(string)
+    threads_per_core      = optional(number)
+  })
+  default = null
+}
+
+# ----------------------------------------------------------------------
+# Warm pool
+# ----------------------------------------------------------------------
+
+variable "warm_pool_state" {
+  description = <<-EOF
+    Pool state for the ASG warm pool. Set to enable a warm pool of
+    pre-initialized instances that resume in seconds rather than running
+    cloud-init from scratch on scale-out. Leave null to disable.
+
+    Valid values: "Stopped", "Running", "Hibernated".
+    Hibernated is NOT supported on bare-metal instance types
+    (e.g. c7i.metal-24xl) — use "Stopped" there.
+  EOF
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.warm_pool_state == null ? true : contains(["Stopped", "Running", "Hibernated"], var.warm_pool_state)
+    error_message = "warm_pool_state must be null or one of Stopped, Running, Hibernated. Got: ${coalesce(var.warm_pool_state, "null")}"
+  }
+}
+
+variable "warm_pool_min_size" {
+  description = <<-EOF
+    Minimum number of instances to keep in the warm pool. Only takes effect
+    when warm_pool_state is set.
+  EOF
+  type        = number
+  default     = 0
+}
+
+variable "warm_pool_max_group_prepared_capacity" {
+  description = <<-EOF
+    Maximum total number of instances the ASG is allowed to maintain across
+    InService + warm pool. Defaults to ASG max_size when null. Only takes
+    effect when warm_pool_state is set.
+  EOF
+  type        = number
+  default     = null
+}
+
+variable "warm_pool_reuse_on_scale_in" {
+  description = <<-EOF
+    Whether terminated instances should be reused (returned to the warm pool)
+    on scale-in instead of being terminated. AWS default false. Only takes
+    effect when warm_pool_state is set.
+  EOF
+  type        = bool
+  default     = false
+}
