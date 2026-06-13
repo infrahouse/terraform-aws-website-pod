@@ -1,4 +1,4 @@
-infrahouse-core ~=  0.27
+infrahouse-core ~= 1.1
 pytest-infrahouse ~= 0.24, >= 0.24.1
 pytest-timeout ~= 2.1
 
