@@ -336,8 +336,8 @@ make validate   # Validate Terraform configuration
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_access_log"></a> [access\_log](#module\_access\_log) | registry.infrahouse.com/infrahouse/s3-bucket/aws | 0.6.0 |
-| <a name="module_athena_results"></a> [athena\_results](#module\_athena\_results) | registry.infrahouse.com/infrahouse/s3-bucket/aws | 0.6.0 |
+| <a name="module_access_log"></a> [access\_log](#module\_access\_log) | registry.infrahouse.com/infrahouse/s3-bucket/aws | 0.8.0 |
+| <a name="module_athena_results"></a> [athena\_results](#module\_athena\_results) | registry.infrahouse.com/infrahouse/s3-bucket/aws | 0.8.0 |
 | <a name="module_instance_profile"></a> [instance\_profile](#module\_instance\_profile) | registry.infrahouse.com/infrahouse/instance-profile/aws | 1.9.0 |
 
 ## Resources

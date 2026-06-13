@@ -11,7 +11,12 @@ resource "aws_alb" "website" {
     aws_security_group.alb.id
   ]
   access_logs {
-    bucket  = module.access_log.bucket_name
+    # Use the policy-aware output so the ALB depends on the bucket policy being
+    # attached before access logging is enabled. ELB performs a synchronous test
+    # PutObject when logging is turned on; referencing bucket_name (which only
+    # depends on the bucket, not its policy) races the policy and fails the first
+    # apply with "Access Denied". See issue #122.
+    bucket  = module.access_log.bucket_name_with_policy
     enabled = true
   }
   tags = merge(

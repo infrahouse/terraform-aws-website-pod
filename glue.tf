@@ -8,7 +8,7 @@ resource "random_string" "glue_suffix" {
 module "athena_results" {
   count   = local.glue_enabled ? 1 : 0
   source  = "registry.infrahouse.com/infrahouse/s3-bucket/aws"
-  version = "0.6.0"
+  version = "0.8.0"
 
   bucket_prefix = "${var.alb_name_prefix}-athena-results-"
   force_destroy = var.alb_access_log_force_destroy
