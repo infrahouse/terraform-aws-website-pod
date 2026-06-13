@@ -117,6 +117,10 @@ resource "aws_launch_template" "website" {
       # This ensures adequate swap space for the instance type
       volume_size           = var.root_volume_size + 2 * data.aws_ec2_instance_type.selected.memory_size / 1024
       delete_on_termination = true
+      # Always encrypt the root volume so encryption at rest does not depend on
+      # the account-level "EBS encryption by default" setting. Uses the account
+      # aws/ebs managed key (see issue #124).
+      encrypted = true
     }
   }
   tag_specifications {
