@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.2.0] - 2026-06-13
+
+### Bug Fixes
+
+- Depend on access-log bucket policy before enabling ALB logging
+
+### Miscellaneous Tasks
+
+- Reformat tests for black 26 and bump infrahouse-core to 1.1
+
+### Security
+
+- Encrypt ASG root EBS volume by default
+
 ## [6.1.0] - 2026-06-13
 
 ### Features
