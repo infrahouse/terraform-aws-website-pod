@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.1.0] - 2026-06-13
+
+### Features
+
+- Add optional ASG warm pool and cpu_options passthrough
+
 ## [6.0.1] - 2026-05-29
 
 ### Bug Fixes
