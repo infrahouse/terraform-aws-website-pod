@@ -1,18 +1,19 @@
 resource "aws_autoscaling_group" "website" {
-  name                      = var.asg_name
-  name_prefix               = var.asg_name == null ? aws_launch_template.website.name_prefix : null
-  min_size                  = var.asg_min_size
-  max_size                  = var.asg_max_size
-  min_elb_capacity          = local.min_elb_capacity
-  default_cooldown          = var.asg_default_cooldown
-  enabled_metrics           = var.asg_enabled_metrics
-  vpc_zone_identifier       = var.backend_subnets
-  health_check_type         = var.health_check_type
-  wait_for_capacity_timeout = var.wait_for_capacity_timeout
-  max_instance_lifetime     = var.max_instance_lifetime_days * 24 * 3600
-  health_check_grace_period = var.health_check_grace_period
-  protect_from_scale_in     = var.protect_from_scale_in
-  target_group_arns         = var.target_group_type == "instance" && local.attach_tg_to_asg ? [aws_alb_target_group.website.arn] : []
+  name                             = var.asg_name
+  name_prefix                      = var.asg_name == null ? aws_launch_template.website.name_prefix : null
+  min_size                         = var.asg_min_size
+  max_size                         = var.asg_max_size
+  min_elb_capacity                 = local.min_elb_capacity
+  default_cooldown                 = var.asg_default_cooldown
+  enabled_metrics                  = var.asg_enabled_metrics
+  vpc_zone_identifier              = var.backend_subnets
+  health_check_type                = var.health_check_type
+  wait_for_capacity_timeout        = var.wait_for_capacity_timeout
+  ignore_failed_scaling_activities = var.ignore_failed_scaling_activities
+  max_instance_lifetime            = var.max_instance_lifetime_days * 24 * 3600
+  health_check_grace_period        = var.health_check_grace_period
+  protect_from_scale_in            = var.protect_from_scale_in
+  target_group_arns                = var.target_group_type == "instance" && local.attach_tg_to_asg ? [aws_alb_target_group.website.arn] : []
   instance_refresh {
     strategy = "Rolling"
     preferences {

@@ -340,6 +340,12 @@ variable "extra_security_groups_backend" {
   default     = []
 }
 
+variable "ignore_failed_scaling_activities" {
+  description = "Whether to ignore failed Auto Scaling scaling activities while waiting for capacity."
+  type        = bool
+  default     = false
+}
+
 variable "instance_role_name" {
   description = "If specified, the instance profile role will have this name. Otherwise, the role name will be generated."
   type        = string

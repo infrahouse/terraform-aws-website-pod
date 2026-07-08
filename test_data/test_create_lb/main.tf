@@ -11,25 +11,26 @@ module "lb" {
     aws     = aws
     aws.dns = aws
   }
-  service_name                 = "website"
-  environment                  = local.env
-  subnets                      = var.lb_subnet_ids
-  ami                          = data.aws_ami.ubuntu.id
-  backend_subnets              = var.backend_subnet_ids
-  asg_name                     = var.asg_name
-  asg_min_size                 = 3
-  zone_id                      = var.zone_id
-  dns_a_records                = var.dns_a_records
-  key_pair_name                = aws_key_pair.test.key_name
-  userdata                     = data.cloudinit_config.webserver_init.rendered
-  health_check_type            = "ELB"
-  tags                         = var.tags
-  instance_profile_permissions = data.aws_iam_policy_document.webserver_permissions.json
-  instance_role_name           = var.instance_role_name
-  vanta_owner                  = "dev@infrahouse.com"
-  vanta_contains_ephi          = true
-  vanta_contains_user_data     = true
-  vanta_description            = "Resources for service website"
+  service_name                     = "website"
+  environment                      = local.env
+  subnets                          = var.lb_subnet_ids
+  ami                              = data.aws_ami.ubuntu.id
+  backend_subnets                  = var.backend_subnet_ids
+  asg_name                         = var.asg_name
+  asg_min_size                     = 3
+  zone_id                          = var.zone_id
+  dns_a_records                    = var.dns_a_records
+  key_pair_name                    = aws_key_pair.test.key_name
+  userdata                         = data.cloudinit_config.webserver_init.rendered
+  health_check_type                = "ELB"
+  ignore_failed_scaling_activities = true
+  tags                             = var.tags
+  instance_profile_permissions     = data.aws_iam_policy_document.webserver_permissions.json
+  instance_role_name               = var.instance_role_name
+  vanta_owner                      = "dev@infrahouse.com"
+  vanta_contains_ephi              = true
+  vanta_contains_user_data         = true
+  vanta_description                = "Resources for service website"
   vanta_production_environments = [
     local.env
   ]
