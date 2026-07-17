@@ -10,8 +10,8 @@ These variables must be provided:
 |----------|------|-------------|
 | `ami` | string | AMI ID for EC2 instances |
 | `backend_subnets` | list(string) | Subnet IDs where EC2 instances will run |
-| `internet_gateway_id` | string | Internet Gateway ID (ensures IGW exists) |
 | `key_pair_name` | string | SSH key pair name for EC2 instances |
+| `replication_region` | string | Region for cross-region replication of the access-log bucket |
 | `subnets` | list(string) | Subnet IDs where ALB will be deployed |
 | `userdata` | string | Cloud-init userdata for instance provisioning |
 | `zone_id` | string | Route53 hosted zone ID for DNS records |
@@ -39,7 +39,7 @@ module "website" {
 
   asg_min_size                = 2    # Minimum instances (default: 2)
   asg_max_size                = 10   # Maximum instances (default: 10)
-  autoscaling_target_cpu_load = 70   # Target CPU % (default: 60)
+  autoscaling_target_cpu_load = 70   # Target CPU % (default: 60; null to disable the policy)
 
   # Instance refresh settings
   min_healthy_percentage      = 100  # % healthy during refresh (default: 100)
@@ -51,6 +51,13 @@ module "website" {
   wait_for_capacity_timeout   = "15m"   # Timeout for healthy instances (default: 20m)
 }
 ```
+
+Set `autoscaling_target_cpu_load = null` to skip creating the host-CPU target-tracking
+policy entirely. Do this when instance count is driven by another controller — e.g. an
+ECS capacity provider's managed scaling — where a second ASG policy on the same
+`DesiredCapacity` lever would conflict. The high-CPU CloudWatch alarm is still created
+for Vanta compliance; when the target is `null` its threshold falls back to a fixed 90%
+(instead of target + 30%).
 
 ### Spot Instances
 
@@ -65,6 +72,56 @@ module "website" {
   # Additional capacity uses spot instances
 }
 ```
+
+### Capacity Reservations (ODCR)
+
+Bind the ASG's launch template to an On-Demand Capacity Reservation (ODCR) so
+instances launch into pre-reserved capacity. This guarantees a service can always
+get the instances it needs — useful for scarce instance types (e.g. GPU hosts like
+`g5.2xlarge`) where on-demand launches may otherwise fail with an
+`InsufficientInstanceCapacity` error.
+
+Target a single reservation by ID:
+
+```hcl
+module "website" {
+  # ... required variables ...
+
+  instance_type           = "g5.2xlarge"
+  capacity_reservation_id = "cr-0123456789abcdef0"
+
+  # Instances launch into this reservation (instance_match_criteria = targeted).
+}
+```
+
+Or target a group of reservations by resource-group ARN (lets you pool several
+reservations, e.g. across AZs, behind one identifier):
+
+```hcl
+module "website" {
+  # ... required variables ...
+
+  capacity_reservation_resource_group_arn =
+    "arn:aws:resource-groups:us-west-2:123456789012:group/my-odcr-group"
+}
+```
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `capacity_reservation_id` | string | `null` | Single ODCR to target |
+| `capacity_reservation_resource_group_arn` | string | `null` | Reservation resource-group ARN to target |
+
+**Notes:**
+
+- The two variables are **mutually exclusive** — set at most one. Setting both fails validation.
+- When neither is set (the default), the launch template has no capacity-reservation
+  block and behaves exactly as before, so existing deployments are unaffected.
+- Only the reservation *target* is set (not `capacity_reservation_preference`), so AWS
+  uses `instance_match_criteria = targeted`: only instances that explicitly target the
+  reservation consume it.
+- For an ECS-capacity-provider-managed ASG driving GPU capacity, pair this with
+  `autoscaling_target_cpu_load = null` (see [Auto Scaling](#auto-scaling)) so ECS
+  managed scaling is the sole controller of instance count.
 
 ### Lifecycle Hooks
 
@@ -122,7 +179,6 @@ module "website" {
 module "website" {
   # ... required variables ...
 
-  alb_healthcheck_enabled          = true        # Enable health checks (default: true)
   alb_healthcheck_path             = "/health"   # Health check path (default: /index.html)
   alb_healthcheck_port             = 8080        # Health check port (default: 80)
   alb_healthcheck_protocol         = "HTTP"      # HTTP or HTTPS (default: HTTP)
@@ -136,12 +192,16 @@ module "website" {
 
 ### Access Logging
 
+Access logging is always enabled (encrypted, versioned, cross-region-replicated bucket).
+Tune retention and teardown:
+
 ```hcl
 module "website" {
   # ... required variables ...
 
-  alb_access_log_enabled       = true   # Enable logging (default: false)
-  alb_access_log_force_destroy = false  # Delete bucket on destroy (default: false)
+  replication_region             = "us-east-1"  # Replica bucket region (required)
+  alb_access_log_expiration_days = 365           # Retention (default: 365)
+  alb_access_log_force_destroy   = false         # Delete bucket on destroy (default: false)
 }
 ```
 
@@ -151,7 +211,6 @@ module "website" {
 module "website" {
   # ... required variables ...
 
-  alb_access_log_enabled        = true   # Required
   alb_access_log_athena_enabled = true   # Creates Athena querying stack
 }
 ```

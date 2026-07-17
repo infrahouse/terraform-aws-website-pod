@@ -45,9 +45,6 @@ module "website" {
 
   # Enable monitoring (recommended)
   alarm_emails = ["ops@example.com"]
-
-  # Enable access logging (recommended for production)
-  alb_access_log_enabled = true
 }
 ```
 

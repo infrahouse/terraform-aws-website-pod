@@ -100,6 +100,18 @@ resource "aws_launch_template" "website" {
     http_endpoint          = "enabled"
     instance_metadata_tags = "enabled"
   }
+  # Target an On-Demand Capacity Reservation when one is provided. Only the target is
+  # set (not capacity_reservation_preference) so AWS uses instance_match_criteria =
+  # targeted. Both vars default null -> block absent -> byte-identical for existing consumers.
+  dynamic "capacity_reservation_specification" {
+    for_each = var.capacity_reservation_id != null || var.capacity_reservation_resource_group_arn != null ? [1] : []
+    content {
+      capacity_reservation_target {
+        capacity_reservation_id                 = var.capacity_reservation_id
+        capacity_reservation_resource_group_arn = var.capacity_reservation_resource_group_arn
+      }
+    }
+  }
   dynamic "cpu_options" {
     for_each = var.cpu_options == null ? [] : [var.cpu_options]
     content {

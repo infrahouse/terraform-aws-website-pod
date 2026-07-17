@@ -32,3 +32,11 @@ moved {
   from = aws_vpc_security_group_ingress_rule.https
   to   = aws_vpc_security_group_ingress_rule.https["0.0.0.0/0"]
 }
+
+# aws_autoscaling_policy.cpu_load gained a count when autoscaling_target_cpu_load
+# became nullable (null = don't create the policy). Preserve state for existing
+# consumers who keep a non-null target so the policy is not destroyed/recreated.
+moved {
+  from = aws_autoscaling_policy.cpu_load
+  to   = aws_autoscaling_policy.cpu_load[0]
+}

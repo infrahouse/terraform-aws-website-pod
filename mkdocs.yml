@@ -36,6 +36,12 @@ theme:
 
 nav:
   - Home: index.md
+  - Getting Started: getting-started.md
+  - Configuration: configuration.md
+  - Architecture: architecture.md
+  - Examples: examples.md
+  - Troubleshooting: troubleshooting.md
+  - Changelog: changelog.md
 
 markdown_extensions:
   - pymdownx.highlight:

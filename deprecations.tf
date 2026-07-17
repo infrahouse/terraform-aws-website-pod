@@ -39,10 +39,16 @@ check "weighted_routing_requires_set_identifier" {
   }
 }
 
-# Validate CPU alarm threshold is above autoscaling target
+# Validate CPU alarm threshold is above autoscaling target.
+# Skipped when autoscaling_target_cpu_load is null (host-CPU scaling policy disabled):
+# there is no target to compare against, and comparing a number to null errors.
 check "cpu_alarm_threshold_sane" {
   assert {
-    condition     = local.alarm_cpu_threshold > var.autoscaling_target_cpu_load
+    condition = (
+      var.autoscaling_target_cpu_load == null
+      ? true
+      : local.alarm_cpu_threshold > var.autoscaling_target_cpu_load
+    )
     error_message = <<-EOF
       CPU alarm threshold (${local.alarm_cpu_threshold}%) must be greater than
       autoscaling target (${var.autoscaling_target_cpu_load}%).
