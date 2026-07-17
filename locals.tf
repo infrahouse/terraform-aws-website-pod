@@ -96,13 +96,16 @@ locals {
     var.alb_idle_timeout * 0.8
   )
 
-  # Calculate CPU threshold: default to autoscaling target + 30%
+  # Calculate CPU threshold: default to autoscaling target + 30%.
+  # When autoscaling_target_cpu_load is null (host-CPU scaling policy disabled) there is
+  # no target to add a buffer to, so fall back to a fixed 90% — the CPU alarm stays for
+  # Vanta compliance ("Server CPU monitored") regardless of the scaling policy.
   # Cap at 99% instead of 100% because the alarm uses GreaterThanThreshold (>).
   # A threshold of 100 would mean "alert when CPU > 100%" which is impossible.
   alarm_cpu_threshold = min(
     coalesce(
       var.alarm_cpu_utilization_threshold,
-      var.autoscaling_target_cpu_load + 30
+      var.autoscaling_target_cpu_load != null ? var.autoscaling_target_cpu_load + 30 : 90
     ),
     99
   )

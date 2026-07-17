@@ -74,10 +74,10 @@ module "website" {
   backend_subnets       = module.website-vpc.subnet_private_ids
   zone_id               = "Z07662251LH3YRF2ERM3G"
   dns_a_records         = ["", "www"]
-  internet_gateway_id   = module.website-vpc.internet_gateway_id
   key_pair_name         = data.aws_key_pair.aleks.key_name
   subnets               = module.website-vpc.subnet_public_ids
   userdata              = module.webserver_userdata.userdata
+  replication_region    = "us-east-1"
   stickiness_enabled    = true
 }
 ```
@@ -146,26 +146,27 @@ who can access your load balancer on both HTTP (port 80/`var.alb_listener_port`)
 
 ### ALB Access Logging (Security Best Practice)
 
-**Recommended:** Enable ALB access logging for security investigations, incident response, debugging, and compliance requirements.
+ALB access logging is **always enabled** — the module provisions an encrypted, versioned,
+cross-region-replicated S3 bucket that stores detailed ALB access logs. Access logs are
+mandated by SOC2/ISO 27001 and are not optional. Tune the behavior with:
 
 ```hcl
 module "website" {
   # ... other configuration ...
 
-  # Enable access logging (recommended for production)
-  alb_access_log_enabled = true
+  replication_region             = "us-east-1"  # Region for the replica bucket (required)
+  alb_access_log_expiration_days = 365           # Retention (default: 365)
+  alb_access_log_force_destroy   = false         # Delete bucket even if non-empty (default: false)
 }
 ```
 
-When enabled, the module creates an encrypted, versioned S3 bucket that stores detailed ALB access logs. These logs are essential for:
+These logs are essential for:
 - **Security:** Track unauthorized access attempts and identify suspicious traffic patterns
 - **Compliance:** Meet SOC2, HIPAA, PCI-DSS, and ISO 27001 requirements
 - **Operations:** Debug production issues and analyze traffic patterns
 - **AWS Best Practices:** Aligns with AWS Well-Architected Framework security pillar
 
 **Cost Impact:** Minimal (~$4/year for moderate traffic). Storage costs are negligible compared to security and compliance benefits.
-
-**Note:** Starting in v6.0.0, access logging will be enabled by default. See `variables.tf` for details.
 
 ### Querying Access Logs with Athena
 
@@ -175,7 +176,6 @@ When access logging is enabled, you can optionally set up Athena to query the lo
 module "website" {
   # ... other configuration ...
 
-  alb_access_log_enabled        = true
   alb_access_log_athena_enabled = true
 }
 ```
@@ -213,42 +213,12 @@ LIMIT 50;
 Replace `<service_name>` with your `service_name` value (hyphens replaced with underscores).
 Select the Athena workgroup named `<service_name>-alb-logs-<suffix>` before running queries.
 
-## Deprecated Variables
+## Upgrading
 
-The following variables contain typos and are deprecated. They will be removed in **v6.0.0**.
-
-| Deprecated Variable (v5.x)          | Correct Variable (Use This)          | Status                    |
-|-------------------------------------|--------------------------------------|---------------------------|
-| `alb_healthcheck_uhealthy_threshold`| `alb_healthcheck_unhealthy_threshold`| ⚠️  Deprecated in v5.11.0 |
-| `attach_tagret_group_to_asg`        | `attach_target_group_to_asg`         | ⚠️  Deprecated in v5.11.0 |
-
-### Migration Instructions
-
-If you're using the deprecated variables, update your code before upgrading to v6.0.0:
-
-**Before:**
-```hcl
-module "website" {
-  source  = "infrahouse/website-pod/aws"
-  version = "~> 5.0"
-
-  alb_healthcheck_uhealthy_threshold = 3  # Typo: "uhealthy"
-  attach_tagret_group_to_asg         = true  # Typo: "tagret"
-}
-```
-
-**After:**
-```hcl
-module "website" {
-  source  = "infrahouse/website-pod/aws"
-  version = "~> 5.11"  # or "~> 6.0" when available
-
-  alb_healthcheck_unhealthy_threshold = 3  # Correct spelling
-  attach_target_group_to_asg          = true  # Correct spelling
-}
-```
-
-For detailed migration guidance, see [UPGRADE-6.0.md](UPGRADE-6.0.md).
+The v5.x typo'd variables (`alb_healthcheck_uhealthy_threshold`, `attach_tagret_group_to_asg`)
+were removed in v6.0.0 in favor of their correctly-spelled counterparts
+(`alb_healthcheck_unhealthy_threshold`, `attach_target_group_to_asg`).
+For migration guidance from v5.x, see [UPGRADE-6.0.md](UPGRADE-6.0.md).
 
 ## Development and Testing
 
@@ -414,36 +384,38 @@ make validate   # Validate Terraform configuration
 | <a name="input_alb_healthcheck_interval"></a> [alb\_healthcheck\_interval](#input\_alb\_healthcheck\_interval) | Number of seconds between checks | `number` | `5` | no |
 | <a name="input_alb_healthcheck_path"></a> [alb\_healthcheck\_path](#input\_alb\_healthcheck\_path) | Path on the webserver that the elb will check to determine whether the instance is healthy or not | `string` | `"/index.html"` | no |
 | <a name="input_alb_healthcheck_port"></a> [alb\_healthcheck\_port](#input\_alb\_healthcheck\_port) | Port of the webserver that the elb will check to determine whether the instance is healthy or not | `any` | `80` | no |
-| <a name="input_alb_healthcheck_protocol"></a> [alb\_healthcheck\_protocol](#input\_alb\_healthcheck\_protocol) | Protocol to use with the webserver that the elb will check to determine whether the instance is healthy or not | `string` | `"HTTP"` | no |
+| <a name="input_alb_healthcheck_protocol"></a> [alb\_healthcheck\_protocol](#input\_alb\_healthcheck\_protocol) | Protocol to use with the webserver that the elb will check to determine whether the<br/>instance is healthy or not | `string` | `"HTTP"` | no |
 | <a name="input_alb_healthcheck_response_code_matcher"></a> [alb\_healthcheck\_response\_code\_matcher](#input\_alb\_healthcheck\_response\_code\_matcher) | Range of http return codes that can match | `string` | `"200-299"` | no |
 | <a name="input_alb_healthcheck_timeout"></a> [alb\_healthcheck\_timeout](#input\_alb\_healthcheck\_timeout) | Number of seconds to timeout a check | `number` | `4` | no |
 | <a name="input_alb_healthcheck_unhealthy_threshold"></a> [alb\_healthcheck\_unhealthy\_threshold](#input\_alb\_healthcheck\_unhealthy\_threshold) | Number of consecutive health check failures required before considering the target unhealthy | `number` | `2` | no |
 | <a name="input_alb_idle_timeout"></a> [alb\_idle\_timeout](#input\_alb\_idle\_timeout) | The time in seconds that the connection is allowed to be idle. | `number` | `60` | no |
 | <a name="input_alb_ingress_cidr_blocks"></a> [alb\_ingress\_cidr\_blocks](#input\_alb\_ingress\_cidr\_blocks) | List of CIDR blocks allowed to access the ALB. Defaults to allow all (0.0.0.0/0). | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
-| <a name="input_alb_listener_port"></a> [alb\_listener\_port](#input\_alb\_listener\_port) | TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS. | `number` | `80` | no |
+| <a name="input_alb_listener_port"></a> [alb\_listener\_port](#input\_alb\_listener\_port) | TCP port that a load balancer listens to to serve client HTTP requests. The load<br/>balancer redirects this port to 443 and HTTPS. | `number` | `80` | no |
 | <a name="input_alb_name_prefix"></a> [alb\_name\_prefix](#input\_alb\_name\_prefix) | Name prefix for the load balancer | `string` | `"web"` | no |
 | <a name="input_allow_wildcard_certificates"></a> [allow\_wildcard\_certificates](#input\_allow\_wildcard\_certificates) | If true, CAA records will allow wildcard certificates from the configured certificate\_issuers.<br/>If false, wildcard certificates are blocked. | `bool` | `false` | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | Image for EC2 instances | `string` | n/a | yes |
 | <a name="input_asg_default_cooldown"></a> [asg\_default\_cooldown](#input\_asg\_default\_cooldown) | Amount of time, in seconds, after a scaling activity completes before another<br/>scaling activity can start. This prevents rapid scale-in/scale-out cycles. | `number` | `300` | no |
 | <a name="input_asg_enabled_metrics"></a> [asg\_enabled\_metrics](#input\_asg\_enabled\_metrics) | List of ASG metrics to enable for CloudWatch monitoring.<br/>Set to empty list to disable metrics collection.<br/><br/>Available metrics:<br/>- GroupDesiredCapacity<br/>- GroupInServiceInstances<br/>- GroupPendingInstances<br/>- GroupTerminatingInstances<br/>- GroupTotalInstances<br/>- GroupMinSize<br/>- GroupMaxSize<br/>- GroupInServiceCapacity<br/>- GroupPendingCapacity<br/>- GroupStandbyCapacity<br/>- GroupStandbyInstances<br/>- GroupTerminatingCapacity<br/>- GroupTotalCapacity<br/>- WarmPoolDesiredCapacity<br/>- WarmPoolWarmedCapacity<br/>- WarmPoolPendingCapacity<br/>- WarmPoolTerminatingCapacity<br/>- WarmPoolTotalCapacity<br/>- WarmPoolMinSize<br/>- GroupAndWarmPoolDesiredCapacity<br/>- GroupAndWarmPoolTotalCapacity | `list(string)` | <pre>[<br/>  "GroupDesiredCapacity",<br/>  "GroupInServiceInstances",<br/>  "GroupPendingInstances",<br/>  "GroupTerminatingInstances",<br/>  "GroupTotalInstances"<br/>]</pre> | no |
-| <a name="input_asg_lifecycle_hook_heartbeat_timeout"></a> [asg\_lifecycle\_hook\_heartbeat\_timeout](#input\_asg\_lifecycle\_hook\_heartbeat\_timeout) | How much time in seconds to wait until the hook is completed before proceeding with the default action. | `number` | `3600` | no |
+| <a name="input_asg_lifecycle_hook_heartbeat_timeout"></a> [asg\_lifecycle\_hook\_heartbeat\_timeout](#input\_asg\_lifecycle\_hook\_heartbeat\_timeout) | How much time in seconds to wait until the hook is completed before proceeding with<br/>the default action. | `number` | `3600` | no |
 | <a name="input_asg_lifecycle_hook_initial"></a> [asg\_lifecycle\_hook\_initial](#input\_asg\_lifecycle\_hook\_initial) | Name for an initial LAUNCHING lifecycle hook configured via the initial\_lifecycle\_hook<br/>block in the ASG. This hook is evaluated during ASG creation.<br/>Only one initial hook is allowed per ASG.<br/><br/>Use this for simple lifecycle hooks that don't require additional configuration. | `string` | `null` | no |
 | <a name="input_asg_lifecycle_hook_launching"></a> [asg\_lifecycle\_hook\_launching](#input\_asg\_lifecycle\_hook\_launching) | Name for a LAUNCHING lifecycle hook configured via a separate<br/>aws\_autoscaling\_lifecycle\_hook resource. This allows for more complex configurations<br/>and can be created after the ASG exists.<br/><br/>Use this if you need to attach SNS notifications or additional settings to the lifecycle hook. | `string` | `null` | no |
 | <a name="input_asg_lifecycle_hook_launching_default_result"></a> [asg\_lifecycle\_hook\_launching\_default\_result](#input\_asg\_lifecycle\_hook\_launching\_default\_result) | Default result for launching lifecycle hook. | `string` | `"ABANDON"` | no |
 | <a name="input_asg_lifecycle_hook_terminating"></a> [asg\_lifecycle\_hook\_terminating](#input\_asg\_lifecycle\_hook\_terminating) | Create a TERMINATING lifecycle hook with this name. | `string` | `null` | no |
 | <a name="input_asg_lifecycle_hook_terminating_default_result"></a> [asg\_lifecycle\_hook\_terminating\_default\_result](#input\_asg\_lifecycle\_hook\_terminating\_default\_result) | Default result for terminating lifecycle hook. | `string` | `"ABANDON"` | no |
-| <a name="input_asg_max_healthy_percentage"></a> [asg\_max\_healthy\_percentage](#input\_asg\_max\_healthy\_percentage) | Specifies the upper limit on the number of instances that are in the InService or Pending state with a healthy status during an instance replacement activity. | `number` | `200` | no |
+| <a name="input_asg_max_healthy_percentage"></a> [asg\_max\_healthy\_percentage](#input\_asg\_max\_healthy\_percentage) | Specifies the upper limit on the number of instances that are in the InService or<br/>Pending state with a healthy status during an instance replacement activity. | `number` | `200` | no |
 | <a name="input_asg_max_size"></a> [asg\_max\_size](#input\_asg\_max\_size) | Maximum number of instances in ASG | `number` | `10` | no |
-| <a name="input_asg_min_elb_capacity"></a> [asg\_min\_elb\_capacity](#input\_asg\_min\_elb\_capacity) | Terraform will wait until this many EC2 instances in the autoscaling group become healthy. By default, it's equal to var.asg\_min\_size. | `number` | `null` | no |
-| <a name="input_asg_min_healthy_percentage"></a> [asg\_min\_healthy\_percentage](#input\_asg\_min\_healthy\_percentage) | Specifies the lower limit on the number of instances that must be in the InService state with a healthy status during an instance replacement activity. | `number` | `100` | no |
+| <a name="input_asg_min_elb_capacity"></a> [asg\_min\_elb\_capacity](#input\_asg\_min\_elb\_capacity) | Terraform will wait until this many EC2 instances in the autoscaling group become<br/>healthy. By default, it's equal to var.asg\_min\_size. | `number` | `null` | no |
+| <a name="input_asg_min_healthy_percentage"></a> [asg\_min\_healthy\_percentage](#input\_asg\_min\_healthy\_percentage) | Specifies the lower limit on the number of instances that must be in the InService<br/>state with a healthy status during an instance replacement activity. | `number` | `100` | no |
 | <a name="input_asg_min_size"></a> [asg\_min\_size](#input\_asg\_min\_size) | Minimum number of instances in ASG | `number` | `2` | no |
 | <a name="input_asg_name"></a> [asg\_name](#input\_asg\_name) | Autoscaling group name, if provided. | `string` | `null` | no |
-| <a name="input_asg_scale_in_protected_instances"></a> [asg\_scale\_in\_protected\_instances](#input\_asg\_scale\_in\_protected\_instances) | Behavior when encountering instances protected from scale in are found. Available behaviors are Refresh, Ignore, and Wait. | `string` | `"Ignore"` | no |
+| <a name="input_asg_scale_in_protected_instances"></a> [asg\_scale\_in\_protected\_instances](#input\_asg\_scale\_in\_protected\_instances) | Behavior when encountering instances protected from scale in are found. Available<br/>behaviors are Refresh, Ignore, and Wait. | `string` | `"Ignore"` | no |
 | <a name="input_assume_dns"></a> [assume\_dns](#input\_assume\_dns) | If True, create DNS records provided by var.dns\_a\_records. | `bool` | `true` | no |
-| <a name="input_attach_target_group_to_asg"></a> [attach\_target\_group\_to\_asg](#input\_attach\_target\_group\_to\_asg) | Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself. | `bool` | `true` | no |
-| <a name="input_autoscaling_target_cpu_load"></a> [autoscaling\_target\_cpu\_load](#input\_autoscaling\_target\_cpu\_load) | Target CPU load for autoscaling | `number` | `60` | no |
+| <a name="input_attach_target_group_to_asg"></a> [attach\_target\_group\_to\_asg](#input\_attach\_target\_group\_to\_asg) | Whether to register ASG instances in the target group. Disable if using ECS which<br/>registers targets itself. | `bool` | `true` | no |
+| <a name="input_autoscaling_target_cpu_load"></a> [autoscaling\_target\_cpu\_load](#input\_autoscaling\_target\_cpu\_load) | Target CPU load for the ASG host-CPU target-tracking policy (ASGAverageCPUUtilization).<br/>Set to null to not create the policy at all. Do this when instance count is managed<br/>elsewhere (e.g. an ECS capacity provider's managed scaling), where a second ASG policy<br/>on the same DesiredCapacity lever conflicts. The high-CPU CloudWatch alarm is always<br/>created for Vanta compliance; when this is null its threshold falls back to a fixed<br/>90% instead of target + 30%. | `number` | `60` | no |
 | <a name="input_backend_subnets"></a> [backend\_subnets](#input\_backend\_subnets) | Subnet ids where EC2 instances should be present | `list(string)` | n/a | yes |
-| <a name="input_certificate_issuers"></a> [certificate\_issuers](#input\_certificate\_issuers) | List of certificate authority domains allowed to issue certificates for this domain (e.g., ["amazon.com", "letsencrypt.org"]). The module will format these as CAA records. | `list(string)` | <pre>[<br/>  "amazon.com"<br/>]</pre> | no |
+| <a name="input_capacity_reservation_id"></a> [capacity\_reservation\_id](#input\_capacity\_reservation\_id) | Optional On-Demand Capacity Reservation ID to target from the launch template.<br/>When set, instances launch into this reservation (instance\_match\_criteria = targeted).<br/>Mutually exclusive with capacity\_reservation\_resource\_group\_arn. | `string` | `null` | no |
+| <a name="input_capacity_reservation_resource_group_arn"></a> [capacity\_reservation\_resource\_group\_arn](#input\_capacity\_reservation\_resource\_group\_arn) | Optional Capacity Reservation resource-group ARN to target from the launch template<br/>(an alternative to a single reservation ID).<br/>Mutually exclusive with capacity\_reservation\_id. | `string` | `null` | no |
+| <a name="input_certificate_issuers"></a> [certificate\_issuers](#input\_certificate\_issuers) | List of certificate authority domains allowed to issue certificates for this domain<br/>(e.g., ["amazon.com", "letsencrypt.org"]). The module will format these as CAA records. | `list(string)` | <pre>[<br/>  "amazon.com"<br/>]</pre> | no |
 | <a name="input_cpu_options"></a> [cpu\_options](#input\_cpu\_options) | Optional CPU options for the launch template. Set to null (default) to<br/>let AWS apply the instance-type defaults. `nested_virtualization` (one<br/>of "enabled" / "disabled") is only supported on Intel 8th-gen non-metal<br/>instance types — c8i, m8i, r8i (Feb 2026+). | <pre>object({<br/>    amd_sev_snp           = optional(string)<br/>    core_count            = optional(number)<br/>    nested_virtualization = optional(string)<br/>    threads_per_core      = optional(number)<br/>  })</pre> | `null` | no |
 | <a name="input_dns_a_records"></a> [dns\_a\_records](#input\_dns\_a\_records) | List of A records in the zone\_id that will resolve to the ALB dns name. | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |
 | <a name="input_dns_routing_policy"></a> [dns\_routing\_policy](#input\_dns\_routing\_policy) | DNS routing policy for Route53 A records.<br/><br/>**Available policies:**<br/>- `simple` (default): Standard DNS routing. Each A record resolves directly to the ALB.<br/>  Best for: Single deployments, standard configurations.<br/><br/>- `weighted`: Enables Route53 weighted routing policy for zero-downtime migrations.<br/>  Requires: dns\_set\_identifier must be set.<br/>  Best for: Blue/green deployments, gradual traffic migration, A/B testing.<br/><br/>**Migration workflow example:**<br/>1. Deploy new service with `dns_routing_policy = "weighted"`, `dns_weight = 0`<br/>2. Convert existing service to weighted with `dns_weight = 100`<br/>3. Gradually shift: 90/10 → 50/50 → 10/90 → 0/100<br/>4. Remove old service<br/><br/>**Note:** When using weighted routing, you can have multiple modules create<br/>records for the same DNS name, each with a unique dns\_set\_identifier.<br/><br/>**Note:** This routing policy applies to ALL DNS records created via dns\_a\_records.<br/>If you need different routing policies per record, deploy separate module instances. | `string` | `"simple"` | no |
@@ -455,14 +427,14 @@ make validate   # Validate Terraform configuration
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | ASG will wait up to this number of seconds for instance to become healthy | `number` | `600` | no |
 | <a name="input_health_check_type"></a> [health\_check\_type](#input\_health\_check\_type) | Type of healthcheck the ASG uses. Can be EC2 or ELB. | `string` | `"ELB"` | no |
 | <a name="input_instance_profile_permissions"></a> [instance\_profile\_permissions](#input\_instance\_profile\_permissions) | A JSON policy document to attach to the instance profile.<br/>This should be the output of an aws\_iam\_policy\_document data source.<br/><br/>Example:<br/>  instance\_profile\_permissions = data.aws\_iam\_policy\_document.my\_policy.json<br/><br/>If not specified, defaults to a minimal policy allowing sts:GetCallerIdentity. | `string` | `null` | no |
-| <a name="input_instance_role_name"></a> [instance\_role\_name](#input\_instance\_role\_name) | If specified, the instance profile role will have this name. Otherwise, the role name will be generated. | `string` | `null` | no |
+| <a name="input_instance_role_name"></a> [instance\_role\_name](#input\_instance\_role\_name) | If specified, the instance profile role will have this name. Otherwise, the role name<br/>will be generated. | `string` | `null` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instances type | `string` | `"t3.micro"` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | SSH keypair name to be deployed in EC2 instances | `string` | n/a | yes |
 | <a name="input_load_balancing_algorithm_type"></a> [load\_balancing\_algorithm\_type](#input\_load\_balancing\_algorithm\_type) | Load balancing algorithm for the target group.<br/><br/>**Available algorithms:**<br/>- `round_robin` (default): Distributes requests evenly across healthy targets.<br/>  Best for: General-purpose workloads with similar request processing times.<br/><br/>- `least_outstanding_requests`: Routes to the target with fewest in-flight requests.<br/>  Best for: Workloads with varying request processing times, long-running requests,<br/>  or when backend instances have different capacities.<br/><br/>**Note:** When stickiness is enabled, the algorithm applies only to initial<br/>session assignment. Subsequent requests from the same client go to the same target. | `string` | `"round_robin"` | no |
-| <a name="input_max_instance_lifetime_days"></a> [max\_instance\_lifetime\_days](#input\_max\_instance\_lifetime\_days) | The maximum amount of time, in \_days\_, that an instance can be in service, values must be either equal to 0 or between 7 and 365 days. | `number` | `30` | no |
-| <a name="input_min_healthy_percentage"></a> [min\_healthy\_percentage](#input\_min\_healthy\_percentage) | Amount of capacity in the Auto Scaling group that must remain healthy during an instance refresh to allow the operation to continue, as a percentage of the desired capacity of the Auto Scaling group. | `number` | `100` | no |
-| <a name="input_on_demand_base_capacity"></a> [on\_demand\_base\_capacity](#input\_on\_demand\_base\_capacity) | If specified, the ASG will request spot instances and this will be the minimal number of on-demand instances. | `number` | `null` | no |
-| <a name="input_protect_from_scale_in"></a> [protect\_from\_scale\_in](#input\_protect\_from\_scale\_in) | Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in. | `bool` | `false` | no |
+| <a name="input_max_instance_lifetime_days"></a> [max\_instance\_lifetime\_days](#input\_max\_instance\_lifetime\_days) | The maximum amount of time, in \_days\_, that an instance can be in service, values must<br/>be either equal to 0 or between 7 and 365 days. | `number` | `30` | no |
+| <a name="input_min_healthy_percentage"></a> [min\_healthy\_percentage](#input\_min\_healthy\_percentage) | Amount of capacity in the Auto Scaling group that must remain healthy during an<br/>instance refresh to allow the operation to continue, as a percentage of the desired<br/>capacity of the Auto Scaling group. | `number` | `100` | no |
+| <a name="input_on_demand_base_capacity"></a> [on\_demand\_base\_capacity](#input\_on\_demand\_base\_capacity) | If specified, the ASG will request spot instances and this will be the minimal number<br/>of on-demand instances. | `number` | `null` | no |
+| <a name="input_protect_from_scale_in"></a> [protect\_from\_scale\_in](#input\_protect\_from\_scale\_in) | Whether newly launched instances are automatically protected from termination by<br/>Amazon EC2 Auto Scaling when scaling in. | `bool` | `false` | no |
 | <a name="input_replication_region"></a> [replication\_region](#input\_replication\_region) | AWS region for cross-region replication of the ALB access log bucket. | `string` | n/a | yes |
 | <a name="input_root_volume_size"></a> [root\_volume\_size](#input\_root\_volume\_size) | Root volume size in EC2 instance in Gigabytes | `number` | `30` | no |
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Descriptive name of a service that will use this VPC | `string` | `"website"` | no |
@@ -477,11 +449,11 @@ make validate   # Validate Terraform configuration
 | <a name="input_target_group_type"></a> [target\_group\_type](#input\_target\_group\_type) | Target group type: instance, ip, alb. Default is instance. | `string` | `"instance"` | no |
 | <a name="input_upstream_module"></a> [upstream\_module](#input\_upstream\_module) | Module that called this module. | `string` | `null` | no |
 | <a name="input_userdata"></a> [userdata](#input\_userdata) | userdata for cloud-init to provision EC2 instances | `string` | n/a | yes |
-| <a name="input_vanta_contains_ephi"></a> [vanta\_contains\_ephi](#input\_vanta\_contains\_ephi) | This tag allows administrators to define whether or not a resource contains electronically Protected Health Information (ePHI). It can be set to either (true) or if they do not have ephi data (false). | `bool` | `false` | no |
-| <a name="input_vanta_contains_user_data"></a> [vanta\_contains\_user\_data](#input\_vanta\_contains\_user\_data) | his tag allows administrators to define whether or not a resource contains user data (true) or if they do not contain user data (false). | `bool` | `false` | no |
-| <a name="input_vanta_description"></a> [vanta\_description](#input\_vanta\_description) | This tag allows administrators to set a description, for instance, or add any other descriptive information. | `string` | `null` | no |
-| <a name="input_vanta_no_alert"></a> [vanta\_no\_alert](#input\_vanta\_no\_alert) | Administrators can add this tag to mark a resource as out of scope for their audit. If this tag is added, the administrator will need to set a reason for why it's not relevant to their audit. | `string` | `null` | no |
-| <a name="input_vanta_owner"></a> [vanta\_owner](#input\_vanta\_owner) | The email address of the instance's owner, and it should be set to the email address of a user in Vanta. An owner will not be assigned if there is no user in Vanta with the email specified. | `string` | `null` | no |
+| <a name="input_vanta_contains_ephi"></a> [vanta\_contains\_ephi](#input\_vanta\_contains\_ephi) | This tag allows administrators to define whether or not a resource contains<br/>electronically Protected Health Information (ePHI). It can be set to either (true) or<br/>if they do not have ephi data (false). | `bool` | `false` | no |
+| <a name="input_vanta_contains_user_data"></a> [vanta\_contains\_user\_data](#input\_vanta\_contains\_user\_data) | This tag allows administrators to define whether or not a resource contains user data<br/>(true) or if they do not contain user data (false). | `bool` | `false` | no |
+| <a name="input_vanta_description"></a> [vanta\_description](#input\_vanta\_description) | This tag allows administrators to set a description, for instance, or add any other<br/>descriptive information. | `string` | `null` | no |
+| <a name="input_vanta_no_alert"></a> [vanta\_no\_alert](#input\_vanta\_no\_alert) | Administrators can add this tag to mark a resource as out of scope for their audit.<br/>If this tag is added, the administrator will need to set a reason for why it's not<br/>relevant to their audit. | `string` | `null` | no |
+| <a name="input_vanta_owner"></a> [vanta\_owner](#input\_vanta\_owner) | The email address of the instance's owner, and it should be set to the email address<br/>of a user in Vanta. An owner will not be assigned if there is no user in Vanta with<br/>the email specified. | `string` | `null` | no |
 | <a name="input_vanta_production_environments"></a> [vanta\_production\_environments](#input\_vanta\_production\_environments) | Environment names to consider production grade in Vanta. | `list(string)` | <pre>[<br/>  "production",<br/>  "prod"<br/>]</pre> | no |
 | <a name="input_vanta_user_data_stored"></a> [vanta\_user\_data\_stored](#input\_vanta\_user\_data\_stored) | This tag allows administrators to describe the type of user data the instance contains. | `string` | `null` | no |
 | <a name="input_wait_for_capacity_timeout"></a> [wait\_for\_capacity\_timeout](#input\_wait\_for\_capacity\_timeout) | How much time to wait until all instances are healthy | `string` | `"20m"` | no |

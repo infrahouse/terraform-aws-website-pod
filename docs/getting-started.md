@@ -103,8 +103,7 @@ module "website" {
   userdata            = module.userdata.userdata
 
   # Recommended settings
-  alarm_emails           = ["ops@example.com"]
-  alb_access_log_enabled = true
+  alarm_emails = ["ops@example.com"]
 }
 
 # Get the latest Ubuntu AMI

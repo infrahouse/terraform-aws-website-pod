@@ -44,7 +44,10 @@ variable "alb_healthcheck_port" {
 }
 
 variable "alb_healthcheck_protocol" {
-  description = "Protocol to use with the webserver that the elb will check to determine whether the instance is healthy or not"
+  description = <<-EOF
+    Protocol to use with the webserver that the elb will check to determine whether the
+    instance is healthy or not
+  EOF
   type        = string
   default     = "HTTP"
 
@@ -110,7 +113,10 @@ variable "alb_idle_timeout" {
 }
 
 variable "alb_listener_port" {
-  description = "TCP port that a load balancer listens to to serve client HTTP requests. The load balancer redirects this port to 443 and HTTPS."
+  description = <<-EOF
+    TCP port that a load balancer listens to to serve client HTTP requests. The load
+    balancer redirects this port to 443 and HTTPS.
+  EOF
   type        = number
   default     = 80
 }
@@ -144,7 +150,11 @@ variable "assume_dns" {
 }
 
 variable "min_healthy_percentage" {
-  description = "Amount of capacity in the Auto Scaling group that must remain healthy during an instance refresh to allow the operation to continue, as a percentage of the desired capacity of the Auto Scaling group."
+  description = <<-EOF
+    Amount of capacity in the Auto Scaling group that must remain healthy during an
+    instance refresh to allow the operation to continue, as a percentage of the desired
+    capacity of the Auto Scaling group.
+  EOF
   type        = number
   default     = 100
 }
@@ -192,14 +202,20 @@ variable "asg_lifecycle_hook_terminating_default_result" {
 }
 
 variable "asg_lifecycle_hook_heartbeat_timeout" {
-  description = "How much time in seconds to wait until the hook is completed before proceeding with the default action."
+  description = <<-EOF
+    How much time in seconds to wait until the hook is completed before proceeding with
+    the default action.
+  EOF
   type        = number
   default     = 3600
 }
 
 
 variable "asg_min_elb_capacity" {
-  description = "Terraform will wait until this many EC2 instances in the autoscaling group become healthy. By default, it's equal to var.asg_min_size."
+  description = <<-EOF
+    Terraform will wait until this many EC2 instances in the autoscaling group become
+    healthy. By default, it's equal to var.asg_min_size.
+  EOF
   type        = number
   default     = null
 }
@@ -216,13 +232,19 @@ variable "asg_max_size" {
   default     = 10
 }
 variable "asg_min_healthy_percentage" {
-  description = "Specifies the lower limit on the number of instances that must be in the InService state with a healthy status during an instance replacement activity."
+  description = <<-EOF
+    Specifies the lower limit on the number of instances that must be in the InService
+    state with a healthy status during an instance replacement activity.
+  EOF
   type        = number
   default     = 100
 }
 
 variable "asg_max_healthy_percentage" {
-  description = "Specifies the upper limit on the number of instances that are in the InService or Pending state with a healthy status during an instance replacement activity."
+  description = <<-EOF
+    Specifies the upper limit on the number of instances that are in the InService or
+    Pending state with a healthy status during an instance replacement activity.
+  EOF
   type        = number
   default     = 200
 
@@ -235,7 +257,10 @@ variable "asg_name" {
 }
 
 variable "asg_scale_in_protected_instances" {
-  description = "Behavior when encountering instances protected from scale in are found. Available behaviors are Refresh, Ignore, and Wait."
+  description = <<-EOF
+    Behavior when encountering instances protected from scale in are found. Available
+    behaviors are Refresh, Ignore, and Wait.
+  EOF
   type        = string
   default     = "Ignore"
 
@@ -298,9 +323,28 @@ variable "asg_enabled_metrics" {
 }
 
 variable "autoscaling_target_cpu_load" {
-  description = "Target CPU load for autoscaling"
+  description = <<-EOT
+    Target CPU load for the ASG host-CPU target-tracking policy (ASGAverageCPUUtilization).
+    Set to null to not create the policy at all. Do this when instance count is managed
+    elsewhere (e.g. an ECS capacity provider's managed scaling), where a second ASG policy
+    on the same DesiredCapacity lever conflicts. The high-CPU CloudWatch alarm is always
+    created for Vanta compliance; when this is null its threshold falls back to a fixed
+    90% instead of target + 30%.
+  EOT
   default     = 60
   type        = number
+
+  validation {
+    condition = (
+      var.autoscaling_target_cpu_load == null
+      ? true
+      : var.autoscaling_target_cpu_load > 0 && var.autoscaling_target_cpu_load <= 100
+    )
+    error_message = <<-EOT
+      autoscaling_target_cpu_load must be between 1 and 100, or null to disable the policy.
+      Got: ${var.autoscaling_target_cpu_load}
+    EOT
+  }
 }
 
 variable "backend_subnets" {
@@ -341,7 +385,10 @@ variable "extra_security_groups_backend" {
 }
 
 variable "instance_role_name" {
-  description = "If specified, the instance profile role will have this name. Otherwise, the role name will be generated."
+  description = <<-EOF
+    If specified, the instance profile role will have this name. Otherwise, the role name
+    will be generated.
+  EOF
   type        = string
   default     = null
 }
@@ -365,6 +412,33 @@ variable "instance_type" {
   description = "EC2 instances type"
   type        = string
   default     = "t3.micro"
+}
+
+variable "capacity_reservation_id" {
+  description = <<-EOT
+    Optional On-Demand Capacity Reservation ID to target from the launch template.
+    When set, instances launch into this reservation (instance_match_criteria = targeted).
+    Mutually exclusive with capacity_reservation_resource_group_arn.
+  EOT
+  type        = string
+  default     = null
+}
+
+variable "capacity_reservation_resource_group_arn" {
+  description = <<-EOT
+    Optional Capacity Reservation resource-group ARN to target from the launch template
+    (an alternative to a single reservation ID).
+    Mutually exclusive with capacity_reservation_id.
+  EOT
+  type        = string
+  default     = null
+
+  validation {
+    condition = !(
+      var.capacity_reservation_id != null && var.capacity_reservation_resource_group_arn != null
+    )
+    error_message = "Set only one of capacity_reservation_id or capacity_reservation_resource_group_arn, not both."
+  }
 }
 
 variable "health_check_grace_period" {
@@ -392,18 +466,27 @@ variable "key_pair_name" {
 }
 
 variable "max_instance_lifetime_days" {
-  description = "The maximum amount of time, in _days_, that an instance can be in service, values must be either equal to 0 or between 7 and 365 days."
+  description = <<-EOF
+    The maximum amount of time, in _days_, that an instance can be in service, values must
+    be either equal to 0 or between 7 and 365 days.
+  EOF
   type        = number
   default     = 30
 
   validation {
-    condition     = var.max_instance_lifetime_days == 0 || (var.max_instance_lifetime_days >= 7 && var.max_instance_lifetime_days <= 365)
+    condition = (
+      var.max_instance_lifetime_days == 0
+      || (var.max_instance_lifetime_days >= 7 && var.max_instance_lifetime_days <= 365)
+    )
     error_message = "max_instance_lifetime_days must be 0 (unlimited) or between 7 and 365 days."
   }
 }
 
 variable "protect_from_scale_in" {
-  description = "Whether newly launched instances are automatically protected from termination by Amazon EC2 Auto Scaling when scaling in."
+  description = <<-EOF
+    Whether newly launched instances are automatically protected from termination by
+    Amazon EC2 Auto Scaling when scaling in.
+  EOF
   type        = bool
   default     = false
 }
@@ -421,7 +504,10 @@ variable "service_name" {
 }
 
 variable "on_demand_base_capacity" {
-  description = "If specified, the ASG will request spot instances and this will be the minimal number of on-demand instances."
+  description = <<-EOF
+    If specified, the ASG will request spot instances and this will be the minimal number
+    of on-demand instances.
+  EOF
   type        = number
   default     = null
 }
@@ -538,7 +624,11 @@ variable "userdata" {
 }
 
 variable "vanta_owner" {
-  description = "The email address of the instance's owner, and it should be set to the email address of a user in Vanta. An owner will not be assigned if there is no user in Vanta with the email specified."
+  description = <<-EOF
+    The email address of the instance's owner, and it should be set to the email address
+    of a user in Vanta. An owner will not be assigned if there is no user in Vanta with
+    the email specified.
+  EOF
   type        = string
   default     = null
 }
@@ -553,19 +643,29 @@ variable "vanta_production_environments" {
 }
 
 variable "vanta_description" {
-  description = "This tag allows administrators to set a description, for instance, or add any other descriptive information."
+  description = <<-EOF
+    This tag allows administrators to set a description, for instance, or add any other
+    descriptive information.
+  EOF
   type        = string
   default     = null
 }
 
 variable "vanta_contains_user_data" {
-  description = "his tag allows administrators to define whether or not a resource contains user data (true) or if they do not contain user data (false)."
+  description = <<-EOF
+    This tag allows administrators to define whether or not a resource contains user data
+    (true) or if they do not contain user data (false).
+  EOF
   type        = bool
   default     = false
 }
 
 variable "vanta_contains_ephi" {
-  description = "This tag allows administrators to define whether or not a resource contains electronically Protected Health Information (ePHI). It can be set to either (true) or if they do not have ephi data (false)."
+  description = <<-EOF
+    This tag allows administrators to define whether or not a resource contains
+    electronically Protected Health Information (ePHI). It can be set to either (true) or
+    if they do not have ephi data (false).
+  EOF
   type        = bool
   default     = false
 }
@@ -577,7 +677,11 @@ variable "vanta_user_data_stored" {
 }
 
 variable "vanta_no_alert" {
-  description = "Administrators can add this tag to mark a resource as out of scope for their audit. If this tag is added, the administrator will need to set a reason for why it's not relevant to their audit."
+  description = <<-EOF
+    Administrators can add this tag to mark a resource as out of scope for their audit.
+    If this tag is added, the administrator will need to set a reason for why it's not
+    relevant to their audit.
+  EOF
   type        = string
   default     = null
 }
@@ -689,7 +793,10 @@ variable "dns_set_identifier" {
 }
 
 variable "certificate_issuers" {
-  description = "List of certificate authority domains allowed to issue certificates for this domain (e.g., [\"amazon.com\", \"letsencrypt.org\"]). The module will format these as CAA records."
+  description = <<-EOF
+    List of certificate authority domains allowed to issue certificates for this domain
+    (e.g., ["amazon.com", "letsencrypt.org"]). The module will format these as CAA records.
+  EOF
   type        = list(string)
   default     = ["amazon.com"]
 }
@@ -704,7 +811,10 @@ variable "allow_wildcard_certificates" {
 }
 
 variable "attach_target_group_to_asg" {
-  description = "Whether to register ASG instances in the target group. Disable if using ECS which registers targets itself."
+  description = <<-EOF
+    Whether to register ASG instances in the target group. Disable if using ECS which
+    registers targets itself.
+  EOF
   type        = bool
   default     = true
 }
@@ -807,7 +917,11 @@ variable "alarm_target_response_time_threshold" {
   default     = null
 
   validation {
-    condition     = var.alarm_target_response_time_threshold == null ? true : (var.alarm_target_response_time_threshold > 0 && var.alarm_target_response_time_threshold <= 3600)
+    condition = (
+      var.alarm_target_response_time_threshold == null
+      ? true
+      : var.alarm_target_response_time_threshold > 0 && var.alarm_target_response_time_threshold <= 3600
+    )
     error_message = <<-EOF
       Response time threshold must be between 0 and 3600 seconds (1 hour).
       Upper limit is generous to support edge cases like file uploads, batch processing,
@@ -913,7 +1027,11 @@ variable "alarm_cpu_utilization_threshold" {
   default     = null
 
   validation {
-    condition     = var.alarm_cpu_utilization_threshold == null ? true : (var.alarm_cpu_utilization_threshold > 0 && var.alarm_cpu_utilization_threshold < 100)
+    condition = (
+      var.alarm_cpu_utilization_threshold == null
+      ? true
+      : var.alarm_cpu_utilization_threshold > 0 && var.alarm_cpu_utilization_threshold < 100
+    )
     error_message = <<-EOF
       CPU utilization threshold must be between 0 and 99 (percentage).
       Threshold of 100 would never trigger since the alarm uses GreaterThanThreshold comparison.
@@ -975,8 +1093,15 @@ variable "warm_pool_state" {
   default     = null
 
   validation {
-    condition     = var.warm_pool_state == null ? true : contains(["Stopped", "Running", "Hibernated"], var.warm_pool_state)
-    error_message = "warm_pool_state must be null or one of Stopped, Running, Hibernated. Got: ${coalesce(var.warm_pool_state, "null")}"
+    condition = (
+      var.warm_pool_state == null
+      ? true
+      : contains(["Stopped", "Running", "Hibernated"], var.warm_pool_state)
+    )
+    error_message = <<-EOT
+      warm_pool_state must be null or one of Stopped, Running, Hibernated.
+      Got: ${coalesce(var.warm_pool_state, "null")}
+    EOT
   }
 }
 

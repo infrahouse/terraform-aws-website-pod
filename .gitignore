@@ -35,6 +35,9 @@ ENV/
 pytest-*-output.log
 docs/_build/
 
+# MkDocs build output
+site/
+
 # IDE
 .idea/
 .vscode/
