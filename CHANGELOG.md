@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.3.0] - 2026-07-18
+
+### Bug Fixes
+
+- Null-safe error_messages for autoscaling_target_cpu_load=null
+
+### Features
+
+- Support GPU ECS autoscaling (targeted ODCR + optional CPU policy)
+
 ## [6.2.0] - 2026-06-13
 
 ### Bug Fixes
