@@ -342,7 +342,7 @@ variable "autoscaling_target_cpu_load" {
     )
     error_message = <<-EOT
       autoscaling_target_cpu_load must be between 1 and 100, or null to disable the policy.
-      Got: ${var.autoscaling_target_cpu_load}
+      Got: ${var.autoscaling_target_cpu_load == null ? "null" : tostring(var.autoscaling_target_cpu_load)}
     EOT
   }
 }
