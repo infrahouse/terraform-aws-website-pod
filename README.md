@@ -67,7 +67,7 @@ module "website" {
     aws.dns = aws.aws-uw1
   }
   source  = "infrahouse/website-pod/aws"
-  version = "6.2.0"
+  version = "6.3.0"
 
   environment           = var.environment
   ami                   = data.aws_ami.ubuntu_22.image_id
