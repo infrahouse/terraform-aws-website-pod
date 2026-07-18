@@ -51,14 +51,14 @@ check "cpu_alarm_threshold_sane" {
     )
     error_message = <<-EOF
       CPU alarm threshold (${local.alarm_cpu_threshold}%) must be greater than
-      autoscaling target (${var.autoscaling_target_cpu_load}%).
+      autoscaling target (${local.cpu_tgt}%).
 
       The alarm should trigger AFTER autoscaling attempts to scale up.
       If alarm threshold <= autoscaling target, the alarm will fire immediately
       without giving autoscaling a chance to respond.
 
       Solution:
-        alarm_cpu_utilization_threshold = ${var.autoscaling_target_cpu_load + 30}
+        alarm_cpu_utilization_threshold = ${local.cpu_tgt_p30}
     EOF
   }
 }

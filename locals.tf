@@ -110,6 +110,14 @@ locals {
     99
   )
 
+  # Null-safe display strings for the cpu_alarm_threshold_sane check message.
+  # Terraform evaluates check error_messages eagerly, so the message must render even
+  # when autoscaling_target_cpu_load is null (the check is skipped for null, but the
+  # template is still evaluated). "n/a" never actually shows: the message only surfaces
+  # on assertion failure, which can only happen for a non-null target.
+  cpu_tgt     = var.autoscaling_target_cpu_load == null ? "n/a" : tostring(var.autoscaling_target_cpu_load)
+  cpu_tgt_p30 = var.autoscaling_target_cpu_load == null ? "n/a" : tostring(var.autoscaling_target_cpu_load + 30)
+
   # SNS topic ARNs to send alarms to
   alarm_sns_topics = concat(
     length(var.alarm_emails) > 0 ? [aws_sns_topic.alarms[0].arn] : [],
