@@ -187,4 +187,27 @@ resource "aws_cloudwatch_metric_alarm" "cpu_utilization" {
       Name = "${aws_autoscaling_group.website.name}-high-cpu"
     }
   )
+
+  lifecycle {
+    # Skipped when autoscaling_target_cpu_load is null (host-CPU scaling policy disabled):
+    # there is no target to compare against, and comparing a number to null errors.
+    precondition {
+      condition = (
+        var.autoscaling_target_cpu_load == null
+        ? true
+        : local.alarm_cpu_threshold > var.autoscaling_target_cpu_load
+      )
+      error_message = <<-EOF
+        CPU alarm threshold (${local.alarm_cpu_threshold}%) must be greater than
+        autoscaling target (${local.cpu_tgt}%).
+
+        The alarm should trigger AFTER autoscaling attempts to scale up.
+        If alarm threshold <= autoscaling target, the alarm will fire immediately
+        without giving autoscaling a chance to respond.
+
+        Solution:
+          alarm_cpu_utilization_threshold = ${local.cpu_tgt_p30}
+      EOF
+    }
+  }
 }

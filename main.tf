@@ -140,4 +140,22 @@ resource "aws_alb_target_group" "website" {
     }
   )
 
+  lifecycle {
+    precondition {
+      condition     = var.alb_healthcheck_timeout < var.alb_healthcheck_interval
+      error_message = <<-EOF
+        Health check timeout must be less than health check interval.
+
+        Current configuration:
+          - Health check timeout:  ${var.alb_healthcheck_timeout} seconds
+          - Health check interval: ${var.alb_healthcheck_interval} seconds
+
+        AWS requires that the timeout value is less than the interval value.
+        Adjust your configuration so that timeout < interval. For example:
+
+          alb_healthcheck_timeout  = 4   # Time to wait for response
+          alb_healthcheck_interval = 5   # Time between checks
+      EOF
+    }
+  }
 }
