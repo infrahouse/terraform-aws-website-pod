@@ -20,6 +20,26 @@ resource "aws_route53_record" "extra" {
     zone_id                = aws_alb.website.zone_id
     evaluate_target_health = true
   }
+
+  lifecycle {
+    precondition {
+      condition     = var.dns_routing_policy == "simple" || var.dns_set_identifier != null
+      error_message = <<-EOF
+        When using dns_routing_policy = "weighted", you must also set dns_set_identifier.
+
+        Current configuration:
+          - dns_routing_policy: ${var.dns_routing_policy}
+          - dns_set_identifier: ${var.dns_set_identifier == null ? "null (not set)" : var.dns_set_identifier}
+
+        Route53 weighted routing records require a unique set_identifier to distinguish
+        between multiple records with the same name.
+
+        Solution:
+          dns_routing_policy = "weighted"
+          dns_set_identifier = "my-service-v1"
+      EOF
+    }
+  }
 }
 
 resource "aws_route53_record" "extra_caa_amazon" {
