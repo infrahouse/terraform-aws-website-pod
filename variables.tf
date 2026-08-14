@@ -530,7 +530,7 @@ variable "stickiness_enabled" {
 }
 
 variable "tags" {
-  description = "Tags to apply to resources creatded by the module."
+  description = "Tags to apply to resources created by the module."
   type        = map(string)
   default     = {}
 }
