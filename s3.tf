@@ -1,6 +1,6 @@
 module "access_log" {
   source  = "registry.infrahouse.com/infrahouse/s3-bucket/aws"
-  version = "0.8.0"
+  version = "0.9.0"
 
   bucket_prefix      = "${var.alb_name_prefix}-access-log-"
   bucket_policy      = data.aws_iam_policy_document.access_logs.json
