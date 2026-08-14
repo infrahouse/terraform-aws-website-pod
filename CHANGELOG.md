@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.4.0] - 2026-08-14
+
+### Bug Fixes
+
+- Require AWS provider >= 6.33.0 (nested_virtualization floor)
+- Convert config-error check blocks to resource preconditions
+
+### Documentation
+
+- Fix typo in tags variable description
+
+### Miscellaneous Tasks
+
+- Update terraform registry.infrahouse.com/infrahouse/instance-profile/aws to v2
+- Update terraform registry.infrahouse.com/infrahouse/s3-bucket/aws to v0.9.0
+- Bump pytest-infrahouse to 0.25
+
+### Testing
+
+- Verify EBS encryption and instance profile on real instances
+
 ## [6.3.0] - 2026-07-18
 
 ### Bug Fixes
