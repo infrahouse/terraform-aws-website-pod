@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.5.0] - 2026-08-22
+
+### Features
+
+- Opt-in InspectorEc2Exclusion tag at launch
+
 ## [6.4.0] - 2026-08-14
 
 ### Bug Fixes
