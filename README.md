@@ -213,6 +213,62 @@ LIMIT 50;
 Replace `<service_name>` with your `service_name` value (hyphens replaced with underscores).
 Select the Athena workgroup named `<service_name>-alb-logs-<suffix>` before running queries.
 
+### Deferring Inspector Findings Until Patched
+
+Amazon Inspector reports findings against a freshly launched instance before
+`unattended-upgrades` has run. The finding closes on the next upgrade, but by then it has
+already reopened its vulnerability group, which breaks the remediation SLA.
+
+Setting `defer_inspector_findings_until_patched = true` makes the ASG tag every instance
+with `InspectorEc2Exclusion` at launch, so Inspector creates no findings until Puppet's
+`profile::boot_security_upgrade` has applied pending security updates and deleted the tag:
+
+```hcl
+locals {
+  asg_name = "my-website"
+}
+
+module "website" {
+  # ... other configuration ...
+
+  asg_name                               = local.asg_name
+  defer_inspector_findings_until_patched = true
+  instance_profile_permissions           = data.aws_iam_policy_document.instance_permissions.json
+}
+
+# Lets profile::boot_security_upgrade drop the InspectorEc2Exclusion tag once
+# security updates are applied.
+data "aws_iam_policy_document" "instance_permissions" {
+  statement {
+    actions   = ["ec2:DeleteTags"]
+    resources = ["arn:aws:ec2:*:${data.aws_caller_identity.current.account_id}:instance/*"]
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "aws:TagKeys"
+      values   = ["InspectorEc2Exclusion"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "ec2:ResourceTag/aws:autoscaling:groupName"
+      values   = [local.asg_name]
+    }
+  }
+}
+```
+
+**The tag is fail-open.** Nothing but that Puppet profile removes it, so an instance whose
+role does not run `profile::boot_security_upgrade` — or whose instance profile lacks
+`ec2:DeleteTags` — stays excluded from Inspector for its entire life. That is why the flag
+is opt-in and defaults to `false`. Enable it only after the Puppet role is in place.
+
+Scope the `ec2:DeleteTags` grant with a value known **before** the ASG exists (your own
+`local.asg_name`, the same value passed to `asg_name`). Referencing the module's `asg_name`
+output would order the IAM grant after the ASG has already begun launching tagged
+instances.
+
+Note that flipping the flag changes an ASG tag, and the ASG's `instance_refresh` is
+triggered on `tag` — expect a rolling instance refresh, not a no-op apply.
+
 ## Upgrading
 
 The v5.x typo'd variables (`alb_healthcheck_uhealthy_threshold`, `attach_tagret_group_to_asg`)
@@ -417,6 +473,7 @@ make validate   # Validate Terraform configuration
 | <a name="input_capacity_reservation_resource_group_arn"></a> [capacity\_reservation\_resource\_group\_arn](#input\_capacity\_reservation\_resource\_group\_arn) | Optional Capacity Reservation resource-group ARN to target from the launch template<br/>(an alternative to a single reservation ID).<br/>Mutually exclusive with capacity\_reservation\_id. | `string` | `null` | no |
 | <a name="input_certificate_issuers"></a> [certificate\_issuers](#input\_certificate\_issuers) | List of certificate authority domains allowed to issue certificates for this domain<br/>(e.g., ["amazon.com", "letsencrypt.org"]). The module will format these as CAA records. | `list(string)` | <pre>[<br/>  "amazon.com"<br/>]</pre> | no |
 | <a name="input_cpu_options"></a> [cpu\_options](#input\_cpu\_options) | Optional CPU options for the launch template. Set to null (default) to<br/>let AWS apply the instance-type defaults. `nested_virtualization` (one<br/>of "enabled" / "disabled") is only supported on Intel 8th-gen non-metal<br/>instance types — c8i, m8i, r8i (Feb 2026+). | <pre>object({<br/>    amd_sev_snp           = optional(string)<br/>    core_count            = optional(number)<br/>    nested_virtualization = optional(string)<br/>    threads_per_core      = optional(number)<br/>  })</pre> | `null` | no |
+| <a name="input_defer_inspector_findings_until_patched"></a> [defer\_inspector\_findings\_until\_patched](#input\_defer\_inspector\_findings\_until\_patched) | Tag instances with InspectorEc2Exclusion at launch, so Amazon Inspector does not<br/>report findings against them until Puppet has applied pending security updates and<br/>removed the tag.<br/><br/>ONLY enable this if the instances' Puppet role includes<br/>profile::boot_security_upgrade. Nothing else removes the tag, and an instance that<br/>keeps it is excluded from Inspector permanently.<br/><br/>The removal permission is the caller's: grant ec2:DeleteTags scoped to the<br/>InspectorEc2Exclusion key via instance\_profile\_permissions. | `bool` | `false` | no |
 | <a name="input_dns_a_records"></a> [dns\_a\_records](#input\_dns\_a\_records) | List of A records in the zone\_id that will resolve to the ALB dns name. | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |
 | <a name="input_dns_routing_policy"></a> [dns\_routing\_policy](#input\_dns\_routing\_policy) | DNS routing policy for Route53 A records.<br/><br/>**Available policies:**<br/>- `simple` (default): Standard DNS routing. Each A record resolves directly to the ALB.<br/>  Best for: Single deployments, standard configurations.<br/><br/>- `weighted`: Enables Route53 weighted routing policy for zero-downtime migrations.<br/>  Requires: dns\_set\_identifier must be set.<br/>  Best for: Blue/green deployments, gradual traffic migration, A/B testing.<br/><br/>**Migration workflow example:**<br/>1. Deploy new service with `dns_routing_policy = "weighted"`, `dns_weight = 0`<br/>2. Convert existing service to weighted with `dns_weight = 100`<br/>3. Gradually shift: 90/10 → 50/50 → 10/90 → 0/100<br/>4. Remove old service<br/><br/>**Note:** When using weighted routing, you can have multiple modules create<br/>records for the same DNS name, each with a unique dns\_set\_identifier.<br/><br/>**Note:** This routing policy applies to ALL DNS records created via dns\_a\_records.<br/>If you need different routing policies per record, deploy separate module instances. | `string` | `"simple"` | no |
 | <a name="input_dns_set_identifier"></a> [dns\_set\_identifier](#input\_dns\_set\_identifier) | Unique identifier for weighted routing records.<br/>Required when dns\_routing\_policy is not "simple".<br/><br/>This identifier distinguishes between multiple weighted records with the same name.<br/>Must be unique across all weighted records for the same DNS name.<br/><br/>**Recommended naming conventions:**<br/>- Environment-based: "production-blue", "production-green"<br/>- Version-based: "v1", "v2", "v3"<br/>- Region-based: "us-west-2-primary", "us-east-1-secondary"<br/>- Module-based: "website-pod-main", "ecs-service-new"<br/><br/>**Example:**<pre>hcl<br/># Old service (being deprecated)<br/>dns_routing_policy = "weighted"<br/>dns_set_identifier = "legacy-service"<br/>dns_weight         = 10<br/><br/># New service (receiving traffic)<br/>dns_routing_policy = "weighted"<br/>dns_set_identifier = "new-service"<br/>dns_weight         = 90</pre> | `string` | `null` | no |

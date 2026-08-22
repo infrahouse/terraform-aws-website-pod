@@ -297,6 +297,7 @@ def test_lb(
             asg_name,
             pformat(response, indent=4),
         )
+        asg_tag_keys = {tag["Key"] for tag in response["AutoScalingGroups"][0]["Tags"]}
 
         healthy_instance = None
         for instance in response["AutoScalingGroups"][0]["Instances"]:
@@ -328,6 +329,21 @@ def test_lb(
             tags["Name"] == instance_name
         ), f"Instance's name should be set to {instance_name}."
         LOG.info("✓ Instance tags verified: Name=%s", instance_name)
+
+        # This deployment leaves defer_inspector_findings_until_patched at its default,
+        # so neither the ASG nor its instances may carry InspectorEc2Exclusion. Only
+        # Puppet's profile::boot_security_upgrade removes that tag, and most website-pod
+        # consumers do not run it -- a default that tagged silently would take them dark
+        # to Inspector for good. test_asg_name.py covers the opt-in (flag on) case.
+        assert "InspectorEc2Exclusion" not in asg_tag_keys, (
+            f"ASG {asg_name} tags instances with InspectorEc2Exclusion by default. "
+            f"ASG tags: {sorted(asg_tag_keys)}"
+        )
+        assert "InspectorEc2Exclusion" not in tags, (
+            f"Instance {healthy_instance['InstanceId']} launched with "
+            f"InspectorEc2Exclusion by default -- it is invisible to Inspector"
+        )
+        LOG.info("✓ InspectorEc2Exclusion absent by default")
 
         # Verify Vanta compliance CloudWatch alarms
         LOG.info("=" * 80)

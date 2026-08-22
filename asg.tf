@@ -78,6 +78,19 @@ resource "aws_autoscaling_group" "website" {
 
     }
   }
+  # Suppresses Inspector findings until profile::boot_security_upgrade has applied
+  # pending security updates and removed this tag. Opt-in because website-pod serves
+  # roles that do not run that profile -- see
+  # .claude/plans/inspector-findings-deferral.md. Consumers must also grant
+  # ec2:DeleteTags via instance_profile_permissions, or the instance is excluded forever.
+  dynamic "tag" {
+    for_each = var.defer_inspector_findings_until_patched ? [1] : []
+    content {
+      key                 = "InspectorEc2Exclusion"
+      value               = "true"
+      propagate_at_launch = true
+    }
+  }
 }
 
 resource "aws_launch_template" "website" {

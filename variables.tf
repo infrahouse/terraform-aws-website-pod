@@ -1133,3 +1133,24 @@ variable "warm_pool_reuse_on_scale_in" {
   type        = bool
   default     = false
 }
+
+# ----------------------------------------------------------------------
+# Amazon Inspector
+# ----------------------------------------------------------------------
+
+variable "defer_inspector_findings_until_patched" {
+  description = <<-EOT
+    Tag instances with InspectorEc2Exclusion at launch, so Amazon Inspector does not
+    report findings against them until Puppet has applied pending security updates and
+    removed the tag.
+
+    ONLY enable this if the instances' Puppet role includes
+    profile::boot_security_upgrade. Nothing else removes the tag, and an instance that
+    keeps it is excluded from Inspector permanently.
+
+    The removal permission is the caller's: grant ec2:DeleteTags scoped to the
+    InspectorEc2Exclusion key via instance_profile_permissions.
+  EOT
+  type        = bool
+  default     = false
+}
