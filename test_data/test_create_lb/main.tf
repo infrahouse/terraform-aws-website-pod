@@ -38,4 +38,6 @@ module "lb" {
   alb_access_log_force_destroy  = true
   alb_access_log_athena_enabled = true
   alarm_emails                  = var.alarm_emails
+
+  defer_inspector_findings_until_patched = var.defer_inspector_findings_until_patched
 }

@@ -285,6 +285,73 @@ module "website" {
 }
 ```
 
+### Deferring Inspector Findings Until Patched
+
+Amazon Inspector reports findings against a freshly launched instance before
+`unattended-upgrades` has run. The finding closes on the next upgrade, but it has already
+reopened its vulnerability group by then, which breaks the remediation SLA.
+
+`defer_inspector_findings_until_patched` makes the ASG tag instances with
+`InspectorEc2Exclusion` at launch, so Inspector creates no findings until Puppet's
+`profile::boot_security_upgrade` applies pending security updates and deletes the tag.
+(The instance is still scanned while excluded — only finding creation is suppressed.)
+
+```hcl
+locals {
+  asg_name = "my-website"
+}
+
+module "website" {
+  # ... required variables ...
+
+  asg_name                               = local.asg_name
+  defer_inspector_findings_until_patched = true
+  instance_profile_permissions           = data.aws_iam_policy_document.instance_permissions.json
+}
+
+# The module supplies the tag; the caller supplies the permission to remove it.
+data "aws_iam_policy_document" "instance_permissions" {
+  statement {
+    actions   = ["ec2:DeleteTags"]
+    resources = ["arn:aws:ec2:*:${data.aws_caller_identity.current.account_id}:instance/*"]
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "aws:TagKeys"
+      values   = ["InspectorEc2Exclusion"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "ec2:ResourceTag/aws:autoscaling:groupName"
+      values   = [local.asg_name]
+    }
+  }
+}
+```
+
+Before enabling it:
+
+- **The tag is fail-open.** Only `profile::boot_security_upgrade` removes it. Instances
+  whose Puppet role does not include that profile — or whose instance profile lacks
+  `ec2:DeleteTags` — stay invisible to Inspector for their entire life, which is worse
+  than never tagging. That is why the default is `false`.
+- **Scope the IAM grant with a value known before the ASG exists** — your own
+  `local.asg_name`, not the module's `asg_name` output. The output would order the grant
+  after the ASG has already begun launching tagged instances.
+- **Flipping the flag triggers a rolling instance refresh.** The ASG's `instance_refresh`
+  is triggered on `tag`, so this is not a no-op apply.
+- **Findings take time to reappear.** Scanning resumes as soon as the tag is removed, but
+  findings show up after roughly 1.5–2 hours of running time. Measure with
+  `firstObservedAt`, not `lastScannedAt`.
+
+To confirm the tag was actually set at launch, read it from instance metadata (the launch
+template enables `instance_metadata_tags`), rather than trusting `delete-tags`, which
+succeeds whether or not the key was present:
+
+```bash
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/tags/instance/InspectorEc2Exclusion
+```
+
 ## DNS Configuration
 
 ### Basic DNS Records

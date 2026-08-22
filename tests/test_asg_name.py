@@ -34,6 +34,7 @@ def test_lb(
                 ubuntu_codename    = "{UBUNTU_CODENAME}"
                 asg_name           = "foo-asg"
                 instance_role_name = "foo-role"
+                defer_inspector_findings_until_patched = true
                 tags = {{
                     Name: "{instance_name}"
                 }}
@@ -120,3 +121,33 @@ def test_lb(
         assert [role["RoleName"] for role in roles] == [
             "foo-role"
         ], f"unexpected roles in {instance_profile_name}: {roles}"
+
+        # defer_inspector_findings_until_patched = true (set in the tfvars above).
+        # The tag must be an ASG tag propagated at launch, not a launch template
+        # tag_specification: only the ASG path gives Puppet an instance that is already
+        # tagged when it boots, so profile::boot_security_upgrade can delete the tag
+        # after applying security updates.
+        #
+        # Nothing removes the tag in this test -- the test role has no Puppet profile --
+        # so the instances stay excluded from Inspector until they are destroyed.
+        # test_create_lb.py covers the default (flag off, never tagged) case.
+        inspector_tags = [
+            tag for tag in asg["Tags"] if tag["Key"] == "InspectorEc2Exclusion"
+        ]
+        assert inspector_tags, (
+            "ASG foo-asg has no InspectorEc2Exclusion tag although "
+            "defer_inspector_findings_until_patched is enabled. "
+            f"ASG tags: {sorted(tag['Key'] for tag in asg['Tags'])}"
+        )
+        assert inspector_tags[0][
+            "PropagateAtLaunch"
+        ], f"InspectorEc2Exclusion is not propagated at launch: {inspector_tags[0]}"
+
+        for instance in instances:
+            instance_tags = {
+                tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])
+            }
+            assert "InspectorEc2Exclusion" in instance_tags, (
+                f"instance {instance['InstanceId']} launched without "
+                f"InspectorEc2Exclusion: {sorted(instance_tags)}"
+            )
